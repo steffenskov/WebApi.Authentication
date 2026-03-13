@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\WebApi.Authentication\WebApi.Authentication.csproj" />
+    <Project Path="src\WebApi.TestApi\WebApi.TestApi.csproj" />
+  </Folder>
+  <Folder Name="/_items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+    <File Path="TODO.md" />
+  </Folder>
+</Solution>
