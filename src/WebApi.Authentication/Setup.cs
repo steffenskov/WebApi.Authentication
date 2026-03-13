@@ -1,8 +1,10 @@
+using System.IdentityModel.Tokens.Jwt;
 using Api.Authentication.Repositories;
 using Api.Authentication.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 public static class Setup
 {
@@ -23,6 +25,7 @@ public static class Setup
 		public IServiceCollection AddApiAuthentication<TRepository>(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null, Action<AuthorizationOptions>? configureAuthorization = null)
 			where TRepository : class, IApiSecretRepository
 		{
+			JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear(); // Disable mapping of sub claim to nameidentifier claim
 			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 				.AddJwtBearer(options =>
 				{
@@ -61,7 +64,7 @@ public static class Setup
 
 		private static async Task OnTokenValidated(TokenValidatedContext context)
 		{
-			var subClaim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub) ?? context.Principal?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+			var subClaim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub);
 			if (subClaim is null)
 			{
 				context.Fail("Missing token identifier claim.");
