@@ -2,9 +2,9 @@ using WebApi.Authentication.Configuration;
 
 namespace WebApi.Authentication.Services;
 
-public interface IJwtTokenProvider
+internal interface IJwtTokenProvider
 {
-	string CreateToken(ApiSecret secret);
+	(string Token, DateTime Expires) CreateToken(ApiSecret secret);
 }
 
 internal class JwtTokenProvider : IJwtTokenProvider
@@ -22,22 +22,24 @@ internal class JwtTokenProvider : IJwtTokenProvider
 		_signingCredentials = configuration.SigningCredentials;
 	}
 
-	public string CreateToken(ApiSecret secret)
+	public (string Token, DateTime Expires) CreateToken(ApiSecret secret)
 	{
 		var customClaims = secret.GetCustomClaims();
 
 		Claim[] claims = [new(JwtRegisteredClaimNames.Sub, secret.Id.ToString()), ..customClaims];
+
+		var expires = DateTime.UtcNow.Add(_expiration);
 		var tokenDescriptor = new SecurityTokenDescriptor
 		{
 			Subject = new ClaimsIdentity(claims),
 			Issuer = _issuer,
 			Audience = _audience,
-			Expires = DateTime.UtcNow.Add(_expiration),
+			Expires = expires,
 			SigningCredentials = _signingCredentials
 		};
 
 		var handler = new JsonWebTokenHandler();
 
-		return handler.CreateToken(tokenDescriptor);
+		return (handler.CreateToken(tokenDescriptor), expires);
 	}
 }

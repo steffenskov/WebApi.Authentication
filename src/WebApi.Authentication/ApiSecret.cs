@@ -24,6 +24,8 @@ public class ApiSecret
 
 	internal bool HasGeneratedToken => !string.IsNullOrWhiteSpace(JwtToken);
 
+	public DateTime Expires { get; private set; }
+
 	/// <summary>
 	///     Revokes the secret, preventing it from being used for authentication.
 	/// </summary>
@@ -45,7 +47,8 @@ public class ApiSecret
 		}
 
 		var token = tokenProvider.CreateToken(this);
-		JwtToken = token;
+		JwtToken = token.Item1;
+		Expires = token.Item2;
 	}
 
 	/// <summary>

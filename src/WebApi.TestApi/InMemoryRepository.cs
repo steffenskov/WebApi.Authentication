@@ -41,12 +41,7 @@ public class SegregatedInMemoryRepository : IApiSecretRepository<SegregatedApiSe
 	public ValueTask<SegregatedApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
 	{
 		var customerClaim = claims.FirstOrDefault(claim => claim.Type == "CustomerId");
-		if (customerClaim is null)
-		{
-			return ValueTask.FromResult<SegregatedApiSecret?>(null);
-		}
-
-		if (!Guid.TryParse(customerClaim.Value, out var customerId))
+		if (!Guid.TryParse(customerClaim?.Value, out var customerId))
 		{
 			return ValueTask.FromResult<SegregatedApiSecret?>(null);
 		}

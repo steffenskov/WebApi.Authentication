@@ -37,9 +37,9 @@ public static class Setup
 		///     overwritten if used!
 		/// </param>
 		/// <param name="configureAuthorization">Optional: Configure the AddAuthorization call.</param>
-		/// <typeparam name="TSecret">Custom type of ApiSecret to use</typeparam>
+		/// <typeparam name="TApiSecret">Custom type of ApiSecret to use</typeparam>
 		/// <returns>The service collection</returns>
-		public IServiceCollection AddApiAuthentication<TSecret>(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
+		public IServiceCollection AddApiAuthentication<TApiSecret>(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
 			Action<AuthorizationOptions>? configureAuthorization = null)
 		{
 			JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear(); // Disable mapping of sub claim to nameidentifier claim
@@ -125,10 +125,11 @@ public static class Setup
 		///     authenticating.
 		/// </param>
 		/// <returns>service collection</returns>
-		public IServiceCollection AddApiSecretProvider<TSecret>(AuthenticationConfiguration configuration)
-			where TSecret : ApiSecret
+		public IServiceCollection AddApiSecretProvider<TApiSecret>(AuthenticationConfiguration configuration)
+			where TApiSecret : ApiSecret
 		{
-			services.AddSingleton<IApiSecretProvider>(provider => new ApiSecretProvider<TSecret>(new JwtTokenProvider(configuration), provider.GetRequiredService<IApiSecretRepository<TSecret>>()));
+			services.AddSingleton<IApiSecretProvider>(provider =>
+				new ApiSecretProvider<TApiSecret>(new JwtTokenProvider(configuration), provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 
 			return services;
 		}
@@ -145,17 +146,73 @@ public static class Setup
 		}
 
 		/// <summary>
-		///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
+		///     Adds a repository to the service collection for storing ApiSecrets.
 		/// </summary>
-		/// <typeparam name="TSecret">Type of ApiSecret</typeparam>
+		/// <param name="repository">Instance of the repository</param>
 		/// <typeparam name="TRepository">Type of repository</typeparam>
 		/// <returns>service collection</returns>
-		public IServiceCollection AddApiSecretRepository<TSecret, TRepository>()
-			where TSecret : ApiSecret
-			where TRepository : class, IApiSecretRepository<TSecret>
+		public IServiceCollection AddApiSecretRepository<TRepository>(TRepository repository)
+			where TRepository : class, IApiSecretRepository<ApiSecret>
 		{
-			services.AddSingleton<IApiSecretRepository<TSecret>, TRepository>();
-			services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryShim<TSecret>(provider.GetRequiredService<IApiSecretRepository<TSecret>>()));
+			return services.AddApiSecretRepository<ApiSecret, TRepository>(repository);
+		}
+
+		/// <summary>
+		///     Adds a repository to the service collection for storing ApiSecrets.
+		/// </summary>
+		/// <param name="repositoryFactory">Factory method to create the repository</param>
+		/// <typeparam name="TRepository">Type of repository</typeparam>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretRepository<TRepository>(Func<IServiceProvider, TRepository> repositoryFactory)
+			where TRepository : class, IApiSecretRepository<ApiSecret>
+		{
+			return services.AddApiSecretRepository<ApiSecret, TRepository>(repositoryFactory);
+		}
+
+		/// <summary>
+		///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
+		/// </summary>
+		/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
+		/// <typeparam name="TRepository">Type of repository</typeparam>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretRepository<TApiSecret, TRepository>()
+			where TApiSecret : ApiSecret
+			where TRepository : class, IApiSecretRepository<TApiSecret>
+		{
+			services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>();
+			services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryShim<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+			return services;
+		}
+
+		/// <summary>
+		///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
+		/// </summary>
+		/// <param name="repository">Instance of the repository</param>
+		/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
+		/// <typeparam name="TRepository">Type of repository</typeparam>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretRepository<TApiSecret, TRepository>(TRepository repository)
+			where TApiSecret : ApiSecret
+			where TRepository : class, IApiSecretRepository<TApiSecret>
+		{
+			services.AddSingleton<IApiSecretRepository<TApiSecret>>(repository);
+			services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryShim<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+			return services;
+		}
+
+		/// <summary>
+		///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
+		/// </summary>
+		/// <param name="repositoryFactory">Factory method to create the repository</param>
+		/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
+		/// <typeparam name="TRepository">Type of repository</typeparam>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretRepository<TApiSecret, TRepository>(Func<IServiceProvider, TRepository> repositoryFactory)
+			where TApiSecret : ApiSecret
+			where TRepository : class, IApiSecretRepository<TApiSecret>
+		{
+			services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>(repositoryFactory);
+			services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryShim<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 			return services;
 		}
 	}

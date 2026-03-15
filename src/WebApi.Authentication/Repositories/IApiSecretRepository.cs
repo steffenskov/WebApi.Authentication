@@ -1,10 +1,10 @@
 namespace WebApi.Authentication.Repositories;
 
-public interface IApiSecretRepository<TSecret>
-	where TSecret : ApiSecret
+public interface IApiSecretRepository<TApiSecret>
+	where TApiSecret : ApiSecret
 {
-	ValueTask<TSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default);
-	ValueTask PersistAsync(TSecret secret, CancellationToken cancellationToken = default);
+	ValueTask<TApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default);
+	ValueTask PersistAsync(TApiSecret secret, CancellationToken cancellationToken = default);
 }
 
 internal interface IApiSecretRepository
@@ -12,12 +12,12 @@ internal interface IApiSecretRepository
 	ValueTask<ApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default);
 }
 
-internal class ApiSecretRepositoryShim<TSecret> : IApiSecretRepository
-	where TSecret : ApiSecret
+internal class ApiSecretRepositoryShim<TApiSecret> : IApiSecretRepository
+	where TApiSecret : ApiSecret
 {
-	private readonly IApiSecretRepository<TSecret> _innerRepository;
+	private readonly IApiSecretRepository<TApiSecret> _innerRepository;
 
-	public ApiSecretRepositoryShim(IApiSecretRepository<TSecret> innerRepository)
+	public ApiSecretRepositoryShim(IApiSecretRepository<TApiSecret> innerRepository)
 	{
 		_innerRepository = innerRepository;
 	}
