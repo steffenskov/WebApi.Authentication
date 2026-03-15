@@ -37,7 +37,7 @@ public class ApiSecret
 	///     Throws if a token already exists.
 	/// </summary>
 	/// <param name="tokenProvider">TokenProvider from Dependency Injection</param>
-	public void GenerateJwtToken(IJwtTokenProvider tokenProvider)
+	internal void GenerateJwtToken(IJwtTokenProvider tokenProvider)
 	{
 		if (HasGeneratedToken)
 		{
@@ -46,5 +46,14 @@ public class ApiSecret
 
 		var token = tokenProvider.CreateToken(this);
 		JwtToken = token;
+	}
+
+	/// <summary>
+	///     Method to override for adding custom claims to the Jwt token generated.
+	/// </summary>
+	/// <returns>Custom claims to add to the token</returns>
+	public virtual IEnumerable<Claim> GetCustomClaims()
+	{
+		return [];
 	}
 }

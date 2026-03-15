@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace WebApi.Authentication.Configuration;
 
 public record AuthenticationConfiguration
@@ -34,18 +32,4 @@ public record AuthenticationConfiguration
 
 	internal SymmetricSecurityKey SigningKey => new(SecretKey);
 	internal SigningCredentials SigningCredentials => new(SigningKey, Algorithm);
-}
-
-public record AuthenticationConfiguration<TSecret> : AuthenticationConfiguration
-	where TSecret : ApiSecret
-{
-	[SetsRequiredMembers]
-	internal AuthenticationConfiguration(AuthenticationConfiguration original) : base(original)
-	{
-	}
-
-	/// <summary>
-	///     Factory method to set any custom claims for the token.
-	/// </summary>
-	public Func<TSecret, IEnumerable<Claim>>? CustomClaimsFactory { get; set; }
 }

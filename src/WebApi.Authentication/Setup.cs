@@ -24,7 +24,7 @@ public static class Setup
 		public IServiceCollection AddApiAuthentication(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
 			Action<AuthorizationOptions>? configureAuthorization = null)
 		{
-			return services.AddApiAuthentication(new AuthenticationConfiguration<ApiSecret>(configuration), configureJwtBearerOptions, configureAuthorization);
+			return services.AddApiAuthentication<ApiSecret>(configuration, configureJwtBearerOptions, configureAuthorization);
 		}
 
 		/// <summary>
@@ -39,9 +39,8 @@ public static class Setup
 		/// <param name="configureAuthorization">Optional: Configure the AddAuthorization call.</param>
 		/// <typeparam name="TSecret">Custom type of ApiSecret to use</typeparam>
 		/// <returns>The service collection</returns>
-		public IServiceCollection AddApiAuthentication<TSecret>(AuthenticationConfiguration<TSecret> configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
+		public IServiceCollection AddApiAuthentication<TSecret>(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
 			Action<AuthorizationOptions>? configureAuthorization = null)
-			where TSecret : ApiSecret
 		{
 			JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear(); // Disable mapping of sub claim to nameidentifier claim
 			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -62,7 +61,7 @@ public static class Setup
 
 					options.Events = new JwtBearerEvents
 					{
-						OnTokenValidated = OnTokenValidated<TSecret>
+						OnTokenValidated = OnTokenValidated
 					};
 				});
 
@@ -79,8 +78,7 @@ public static class Setup
 			return services;
 		}
 
-		private static async Task OnTokenValidated<TSecret>(TokenValidatedContext context)
-			where TSecret : ApiSecret
+		private static async Task OnTokenValidated(TokenValidatedContext context)
 		{
 			if (context.Principal is null)
 			{
@@ -90,7 +88,7 @@ public static class Setup
 
 			var claims = context.Principal.Claims.ToList();
 
-			var secretRepository = context.HttpContext.RequestServices.GetRequiredService<IApiSecretRepository<TSecret>>();
+			var secretRepository = context.HttpContext.RequestServices.GetRequiredService<IApiSecretRepository>();
 
 			var secret = await secretRepository.GetByClaimsAsync(claims);
 			if (secret is null)
@@ -115,7 +113,7 @@ public static class Setup
 		/// <returns>service collection</returns>
 		public IServiceCollection AddApiSecretProvider(AuthenticationConfiguration configuration)
 		{
-			return services.AddApiSecretProvider(new AuthenticationConfiguration<ApiSecret>(configuration));
+			return services.AddApiSecretProvider<ApiSecret>(configuration);
 		}
 
 		/// <summary>
@@ -127,11 +125,10 @@ public static class Setup
 		///     authenticating.
 		/// </param>
 		/// <returns>service collection</returns>
-		public IServiceCollection AddApiSecretProvider<TSecret>(AuthenticationConfiguration<TSecret> configuration)
+		public IServiceCollection AddApiSecretProvider<TSecret>(AuthenticationConfiguration configuration)
 			where TSecret : ApiSecret
 		{
-			services.AddSingleton<IApiSecretProvider>(provider =>
-				new ApiSecretProvider<TSecret>(new JwtTokenProvider<TSecret>(configuration), provider.GetRequiredService<IApiSecretRepository<TSecret>>()));
+			services.AddSingleton<IApiSecretProvider>(provider => new ApiSecretProvider<TSecret>(new JwtTokenProvider(configuration), provider.GetRequiredService<IApiSecretRepository<TSecret>>()));
 
 			return services;
 		}
@@ -158,6 +155,7 @@ public static class Setup
 			where TRepository : class, IApiSecretRepository<TSecret>
 		{
 			services.AddSingleton<IApiSecretRepository<TSecret>, TRepository>();
+			services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryShim<TSecret>(provider.GetRequiredService<IApiSecretRepository<TSecret>>()));
 			return services;
 		}
 	}

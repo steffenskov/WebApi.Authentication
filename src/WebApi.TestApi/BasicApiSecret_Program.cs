@@ -1,6 +1,7 @@
-using System.Security.Cryptography;
+/*using System.Security.Cryptography;
 using Api.WebApi;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Authentication;
 using WebApi.Authentication.Configuration;
 using WebApi.Authentication.Repositories;
 using WebApi.Authentication.Services;
@@ -18,15 +19,15 @@ var configuration = new AuthenticationConfiguration
 	Audience = "WebApi",
 	Expiration = TimeSpan.FromMinutes(5)
 };
-builder.Services.AddApiSecretRepository<SegregatedApiSecret, SegregatedInMemoryRepository>();
-builder.Services.AddApiAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretRepository<InMemoryRepository>();
+builder.Services.AddApiAuthentication(configuration, jwtBearerOptions =>
 {
 	if (builder.Environment.IsDevelopment())
 	{
 		jwtBearerOptions.RequireHttpsMetadata = false;
 	}
 });
-builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration);
+builder.Services.AddApiSecretProvider(configuration);
 
 var app = builder.Build();
 
@@ -63,17 +64,14 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapGet("/login", async ([FromServices] IApiSecretProvider provider) =>
 	{
-		var secret = new SegregatedApiSecret
-		{
-			CustomerId = Guid.NewGuid()
-		};
+		var secret = new ApiSecret();
 		await provider.PersistSecretAsync(secret);
 		return Results.Ok(secret);
 	})
 	.WithName("Login")
 	.AllowAnonymous();
 
-app.MapGet("/revoke", async (IApiSecretRepository<SegregatedApiSecret> repository, HttpContext context) =>
+app.MapGet("/revoke", async (IApiSecretRepository<ApiSecret> repository, HttpContext context) =>
 	{
 		var secret = await repository.GetByClaimsAsync(context.User.Claims.ToList());
 		if (secret is null)
@@ -93,4 +91,5 @@ app.Run();
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
 	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+}*/
+
