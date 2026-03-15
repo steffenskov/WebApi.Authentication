@@ -1,0 +1,72 @@
+name: "Continuous Deployment"
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: nuget-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_PATH: 'src/WebApi.Authentication/WebApi.Authentication.csproj'
+  MONGO_PROJECT_PATH: 'src/WebApi.Authentication.MongoDB/WebApi.Authentication.MongoDB.csproj'
+  SOLUTION_PATH: 'WebApi.Authentication.slnx'
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
+  NUGET_SOURCE_URL: 'https://api.nuget.org/v3/index.json'
+
+jobs:
+  test:
+    name: 'test'
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v6
+
+    - name: 'Install dotnet'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: 'Restore packages'
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+    - name: Test
+      run: dotnet test ${{ env.SOLUTION_PATH }}
+
+  deploy:
+    needs: test
+    runs-on: 'ubuntu-latest'
+    permissions:
+      id-token: write # required by OIDC
+
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v6
+
+    - name: 'Install dotnet'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: 'Restore packages'
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+    - name: 'Build project'
+      run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration Release
+
+    - name: 'Pack main project'
+      run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+
+    - name: 'Pack MongoDB extension'
+      run: dotnet pack ${{ env.MONGO_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+
+    - name: NuGet login (OIDC)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USERNAME }}
+
+    - name: 'Push package'
+      run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source ${{ env.NUGET_SOURCE_URL }} --skip-duplicate

@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WebApi.Authentication.MongoDB/WebApi.Authentication.MongoDB.csproj" />
+    <Project Path="src\WebApi.Authentication\WebApi.Authentication.csproj" />
+    <Project Path="src\WebApi.TestApi\WebApi.TestApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WebApi.Authentication.IntegrationTests/WebApi.Authentication.IntegrationTests.csproj" />
+    <Project Path="tests/WebApi.Authentication.UnitTests/WebApi.Authentication.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/_items/">
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>

@@ -1,0 +1,17 @@
+@temp_HostAddress = http://localhost:5062
+@token = eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJXZWJBcGkiLCJpc3MiOiJBcGlBdXRoZW50aWNhdGlvbiIsImV4cCI6MTc3MzU4NTY5OCwic3ViIjoiMDE5Y2YxZWQtN2EyNS03Y2U1LTlkNjMtMWZjNWUzMDk5OWMzIiwiQ3VzdG9tZXJJZCI6ImRmNWE3ZWMzLThhMmItNDRkMC05ZDM2LTU5ODU2ODAyZmFmOCIsImlhdCI6MTc3MzU4NTM5OCwibmJmIjoxNzczNTg1Mzk4fQ.tG2SxhTwQUQwD6_yALEhfChhH1F4w0FgCZ30Qe1iC6iD1p35Jt66bAf0fsWfC6DgsvG26-FZxBUG59tqz_hilA
+
+GET {{temp_HostAddress}}/login/
+Accept: application/json
+
+###
+
+GET {{temp_HostAddress}}/weatherforecast/
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{temp_HostAddress}}/revoke
+Authorization: Bearer {{token}}
+Accept: application/json
