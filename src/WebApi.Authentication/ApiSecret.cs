@@ -1,5 +1,7 @@
 using WebApi.Authentication.Services;
 
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Local - Without this the setter for Id is stripped out, breaking storage integrations.
+
 namespace WebApi.Authentication;
 
 /// <summary>
@@ -20,7 +22,7 @@ public class ApiSecret
 	/// <summary>
 	///     Id of the the ApiSecret, automatically generated using Guid.CreateVersion7()
 	/// </summary>
-	public Guid Id { get; } = Guid.CreateVersion7();
+	public Guid Id { get; private set; } = Guid.CreateVersion7();
 
 	internal bool HasGeneratedToken => !string.IsNullOrWhiteSpace(JwtToken);
 

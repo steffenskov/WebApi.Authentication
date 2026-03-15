@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 using WebApi.Authentication;
 using WebApi.Authentication.Configuration;
-using WebApi.Authentication.Repositories;
 using WebApi.Authentication.Services;
 
 public static class Setup
@@ -61,7 +58,7 @@ public static class Setup
 
 					options.Events = new JwtBearerEvents
 					{
-						OnTokenValidated = OnTokenValidated
+						OnTokenValidated = TokenValidatorService.OnTokenValidated
 					};
 				});
 
@@ -76,31 +73,6 @@ public static class Setup
 			}
 
 			return services;
-		}
-
-		private static async Task OnTokenValidated(TokenValidatedContext context)
-		{
-			if (context.Principal is null)
-			{
-				context.Fail("Principal is null.");
-				return;
-			}
-
-			var claims = context.Principal.Claims.ToList();
-
-			var secretRepository = context.HttpContext.RequestServices.GetRequiredService<IApiSecretRepository>();
-
-			var secret = await secretRepository.GetByClaimsAsync(claims);
-			if (secret is null)
-			{
-				context.Fail("Secret not found.");
-				return;
-			}
-
-			if (secret.IsRevoked)
-			{
-				context.Fail($"Secret is revoked: {secret.Id}");
-			}
 		}
 
 		/// <summary>

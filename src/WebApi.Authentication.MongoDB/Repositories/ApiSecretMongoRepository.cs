@@ -5,14 +5,14 @@ using WebApi.Authentication.Repositories;
 
 namespace WebApi.Authentication.MongoDB.Repositories;
 
-public class ApiSecretMongoRepository<T> : IApiSecretRepository<T>
-	where T : ApiSecret
+public class ApiSecretMongoRepository<TApiSecret> : IApiSecretRepository<TApiSecret>
+	where TApiSecret : ApiSecret
 {
-	private readonly IMongoCollection<T> _collection;
+	private readonly IMongoCollection<TApiSecret> _collection;
 
 	public ApiSecretMongoRepository(IMongoDatabase db, string collectionName)
 	{
-		_collection = db.GetCollection<T>(collectionName);
+		_collection = db.GetCollection<TApiSecret>(collectionName);
 	}
 
 	/// <summary>
@@ -22,7 +22,7 @@ public class ApiSecretMongoRepository<T> : IApiSecretRepository<T>
 	/// <param name="claims">Claims from Jwt token.</param>
 	/// <param name="cancellationToken">CancellationToken</param>
 	/// <returns>ApiSecret if found, otherwise null</returns>
-	public virtual async ValueTask<T?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
+	public virtual async ValueTask<TApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
 	{
 		var subClaim = claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sub);
 		if (subClaim is null)
@@ -45,7 +45,7 @@ public class ApiSecretMongoRepository<T> : IApiSecretRepository<T>
 	/// </summary>
 	/// <param name="secret">ApiSecret to persist</param>
 	/// <param name="cancellationToken">CancellationToken</param>
-	public virtual async ValueTask PersistAsync(T secret, CancellationToken cancellationToken = default)
+	public virtual async ValueTask PersistAsync(TApiSecret secret, CancellationToken cancellationToken = default)
 	{
 		await _collection.ReplaceOneAsync(apiSecret => apiSecret.Id == secret.Id, secret, new ReplaceOptions { IsUpsert = true }, cancellationToken);
 	}
