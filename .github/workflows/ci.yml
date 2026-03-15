@@ -11,8 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PROJECT_PATH: 'src/StrongTypedId/StrongTypedId.csproj'
-  SOLUTION_PATH: 'StrongTypedId.sln'
+  SOLUTION_PATH: 'WebApi.Authentication.slnx'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}\output
   NUGET_SOURCE_URL: 'https://api.nuget.org/v3/index.json'
 
@@ -23,12 +22,12 @@ jobs:
 
     steps:
     - name: 'Checkout'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: 'Install dotnet'
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
 
     - name: 'Restore packages'
       run: dotnet restore ${{ env.SOLUTION_PATH }}

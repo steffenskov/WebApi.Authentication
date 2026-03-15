@@ -9,14 +9,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PROJECT_PATH: 'src/StrongTypedId/StrongTypedId.csproj'
-  LITE_PROJECT_PATH: 'src/StrongTypedId.LiteDB/StrongTypedId.LiteDB.csproj'
-  MONGO_PROJECT_PATH: 'src/StrongTypedId.MongoDB/StrongTypedId.MongoDB.csproj'
-  NEWTON_PROJECT_PATH: 'src/StrongTypedId.NewtonSoft/StrongTypedId.NewtonSoft.csproj'
-  EF_PROJECT_PATH: 'src/StrongTypedId.EntityFrameworkCore/StrongTypedId.EntityFrameworkCore.csproj'
-  DAPPER_PROJECT_PATH: 'src/StrongTypedId.Dapper.DDD.Repository/StrongTypedId.Dapper.DDD.Repository.csproj'
-  SWAGGER_PROJECT_PATH: 'src/StrongTypedId.Swagger/StrongTypedId.Swagger.csproj'
-  SOLUTION_PATH: 'StrongTypedId.sln'
+  PROJECT_PATH: 'src/WebApi.Authentication/WebApi.Authentication.csproj'
+  MONGO_PROJECT_PATH: 'src/WebApi.Authentication.MongoDB/WebApi.Authentication.MongoDB.csproj'
+  SOLUTION_PATH: 'WebApi.Authentication.slnx'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   NUGET_SOURCE_URL: 'https://api.nuget.org/v3/index.json'
 
@@ -27,12 +22,12 @@ jobs:
 
     steps:
     - name: 'Checkout'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: 'Install dotnet'
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
 
     - name: 'Restore packages'
       run: dotnet restore ${{ env.SOLUTION_PATH }}
@@ -48,12 +43,12 @@ jobs:
 
     steps:
     - name: 'Checkout'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: 'Install dotnet'
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
 
     - name: 'Restore packages'
       run: dotnet restore ${{ env.SOLUTION_PATH }}
@@ -64,23 +59,8 @@ jobs:
     - name: 'Pack main project'
       run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
 
-    - name: 'Pack LiteDB extension'
-      run: dotnet pack ${{ env.LITE_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-
     - name: 'Pack MongoDB extension'
       run: dotnet pack ${{ env.MONGO_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-      
-    - name: 'Pack NewtonSoft extension'
-      run: dotnet pack ${{ env.NEWTON_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-
-    - name: 'Pack EntityFramework extension'
-      run: dotnet pack ${{ env.EF_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-
-    - name: 'Pack Dapper.DDD.Repository extension'
-      run: dotnet pack ${{ env.DAPPER_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-
-    - name: 'Pack Swagger extension'
-      run: dotnet pack ${{ env.SWAGGER_PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
 
     - name: NuGet login (OIDC)
       uses: NuGet/login@v1
