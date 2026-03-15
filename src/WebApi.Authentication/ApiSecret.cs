@@ -46,9 +46,9 @@ public class ApiSecret
 			throw new InvalidOperationException($"JwtToken already generated for ApiSecret {Id}.");
 		}
 
-		var token = tokenProvider.CreateToken(this);
-		JwtToken = token.Item1;
-		Expires = token.Item2;
+		var result = tokenProvider.CreateToken(this);
+		JwtToken = result.Token;
+		Expires = result.Expires;
 	}
 
 	/// <summary>
