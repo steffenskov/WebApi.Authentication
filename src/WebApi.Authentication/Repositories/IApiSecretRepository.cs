@@ -1,7 +1,8 @@
-namespace Api.Authentication.Repositories;
+namespace WebApi.Authentication.Repositories;
 
-public interface IApiSecretRepository
+public interface IApiSecretRepository<TSecret>
+	where TSecret : ApiSecret
 {
-	ValueTask<ApiSecret?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-	ValueTask PersistAsync(ApiSecret secret, CancellationToken cancellationToken = default);
+	ValueTask<TSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default);
+	ValueTask PersistAsync(TSecret secret, CancellationToken cancellationToken = default);
 }

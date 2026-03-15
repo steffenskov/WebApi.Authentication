@@ -1,10 +1,10 @@
-using System.IdentityModel.Tokens.Jwt;
-using Api.Authentication.Repositories;
-using Api.Authentication.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
+using WebApi.Authentication;
+using WebApi.Authentication.Configuration;
+using WebApi.Authentication.Repositories;
+using WebApi.Authentication.Services;
 
 public static class Setup
 {
@@ -20,10 +20,28 @@ public static class Setup
 		///     overwritten if used!
 		/// </param>
 		/// <param name="configureAuthorization">Optional: Configure the AddAuthorization call.</param>
-		/// <typeparam name="TRepository">Type of IApiSecretRepository to use for storage of secrets</typeparam>
 		/// <returns>The service collection</returns>
-		public IServiceCollection AddApiAuthentication<TRepository>(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null, Action<AuthorizationOptions>? configureAuthorization = null)
-			where TRepository : class, IApiSecretRepository
+		public IServiceCollection AddApiAuthentication(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
+			Action<AuthorizationOptions>? configureAuthorization = null)
+		{
+			return services.AddApiAuthentication(new AuthenticationConfiguration<ApiSecret>(configuration), configureJwtBearerOptions, configureAuthorization);
+		}
+
+		/// <summary>
+		///     Adds the authentication and authorization services to the service collection with validation using a custom
+		///     ApiSecret type.
+		/// </summary>
+		/// <param name="configuration">Configuration of the authentication scheme</param>
+		/// <param name="configureJwtBearerOptions">
+		///     Optional: Configure the JwtBearerOptions, do note some configurations will be
+		///     overwritten if used!
+		/// </param>
+		/// <param name="configureAuthorization">Optional: Configure the AddAuthorization call.</param>
+		/// <typeparam name="TSecret">Custom type of ApiSecret to use</typeparam>
+		/// <returns>The service collection</returns>
+		public IServiceCollection AddApiAuthentication<TSecret>(AuthenticationConfiguration<TSecret> configuration, Action<JwtBearerOptions>? configureJwtBearerOptions = null,
+			Action<AuthorizationOptions>? configureAuthorization = null)
+			where TSecret : ApiSecret
 		{
 			JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear(); // Disable mapping of sub claim to nameidentifier claim
 			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -44,7 +62,7 @@ public static class Setup
 
 					options.Events = new JwtBearerEvents
 					{
-						OnTokenValidated = OnTokenValidated
+						OnTokenValidated = OnTokenValidated<TSecret>
 					};
 				});
 
@@ -58,62 +76,88 @@ public static class Setup
 				services.AddAuthorization();
 			}
 
-			services.AddApiSecretRepository<TRepository>();
 			return services;
 		}
 
-		private static async Task OnTokenValidated(TokenValidatedContext context)
+		private static async Task OnTokenValidated<TSecret>(TokenValidatedContext context)
+			where TSecret : ApiSecret
 		{
-			var subClaim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub);
-			if (subClaim is null)
+			if (context.Principal is null)
 			{
-				context.Fail("Missing token identifier claim.");
+				context.Fail("Principal is null.");
 				return;
 			}
 
-			if (!Guid.TryParse(subClaim.Value, out var secretId))
-			{
-				context.Fail($"Invalid token identifier claim: {subClaim}");
-				return;
-			}
+			var claims = context.Principal.Claims.ToList();
 
-			var secretRepository = context.HttpContext.RequestServices.GetRequiredService<IApiSecretRepository>();
+			var secretRepository = context.HttpContext.RequestServices.GetRequiredService<IApiSecretRepository<TSecret>>();
 
-			var secret = await secretRepository.GetByIdAsync(secretId);
+			var secret = await secretRepository.GetByClaimsAsync(claims);
 			if (secret is null)
 			{
-				context.Fail($"Secret not found: {subClaim}");
+				context.Fail("Secret not found.");
 				return;
 			}
 
 			if (secret.IsRevoked)
 			{
-				context.Fail($"Secret is revoked: {subClaim}");
+				context.Fail($"Secret is revoked: {secret.Id}");
 			}
 		}
 
 		/// <summary>
-		///     Adds the IApiSecretProvider to the service collection. This can be used for issuing new api secrets.
+		///     Adds the ApiSecretProvider to the service collection. This can be used for issuing new api secrets.
 		/// </summary>
 		/// <param name="configuration">
 		///     configuration of your authentication, make sure you use the same configuration when
 		///     authenticating.
 		/// </param>
 		/// <returns>service collection</returns>
-		public IServiceCollection AddApiSecretProvider<TRepository>(AuthenticationConfiguration configuration)
-			where TRepository : class, IApiSecretRepository
+		public IServiceCollection AddApiSecretProvider(AuthenticationConfiguration configuration)
 		{
-			services.AddSingleton<IJwtTokenProvider>(new JwtTokenProvider(configuration));
-			services.AddSingleton<IApiSecretProvider, ApiSecretProvider>();
-			services.AddApiSecretRepository<TRepository>();
+			return services.AddApiSecretProvider(new AuthenticationConfiguration<ApiSecret>(configuration));
+		}
+
+		/// <summary>
+		///     Adds the ApiSecretProvider to the service collection using a custom ApiSecret type.
+		///     This can be used for issuing new api secrets.
+		/// </summary>
+		/// <param name="configuration">
+		///     configuration of your authentication, make sure you use the same configuration when
+		///     authenticating.
+		/// </param>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretProvider<TSecret>(AuthenticationConfiguration<TSecret> configuration)
+			where TSecret : ApiSecret
+		{
+			services.AddSingleton<IApiSecretProvider>(provider =>
+				new ApiSecretProvider<TSecret>(new JwtTokenProvider<TSecret>(configuration), provider.GetRequiredService<IApiSecretRepository<TSecret>>()));
 
 			return services;
 		}
 
-		private IServiceCollection AddApiSecretRepository<TRepository>()
-			where TRepository : class, IApiSecretRepository
+		/// <summary>
+		///     Adds a repository to the service collection for storing ApiSecrets.
+		/// </summary>
+		/// <typeparam name="TRepository">Type of repository</typeparam>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretRepository<TRepository>()
+			where TRepository : class, IApiSecretRepository<ApiSecret>
 		{
-			services.AddSingleton<IApiSecretRepository, TRepository>();
+			return services.AddApiSecretRepository<ApiSecret, TRepository>();
+		}
+
+		/// <summary>
+		///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
+		/// </summary>
+		/// <typeparam name="TSecret">Type of ApiSecret</typeparam>
+		/// <typeparam name="TRepository">Type of repository</typeparam>
+		/// <returns>service collection</returns>
+		public IServiceCollection AddApiSecretRepository<TSecret, TRepository>()
+			where TSecret : ApiSecret
+			where TRepository : class, IApiSecretRepository<TSecret>
+		{
+			services.AddSingleton<IApiSecretRepository<TSecret>, TRepository>();
 			return services;
 		}
 	}

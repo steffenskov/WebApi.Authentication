@@ -1,28 +1,31 @@
-using Api.Authentication.Repositories;
+using WebApi.Authentication.Repositories;
 
-namespace Api.Authentication.Services;
+namespace WebApi.Authentication.Services;
 
 public interface IApiSecretProvider
 {
-	ValueTask<ApiSecret> CreateSecretAsync(CancellationToken cancellationToken = default);
+	ValueTask PersistSecretAsync(ApiSecret secret, CancellationToken cancellationToken = default);
 }
 
-internal class ApiSecretProvider : IApiSecretProvider
+internal class ApiSecretProvider<T> : IApiSecretProvider
+	where T : ApiSecret
 {
-	private readonly IApiSecretRepository _repository;
+	private readonly IApiSecretRepository<T> _repository;
 	private readonly IJwtTokenProvider _tokenProvider;
 
-	public ApiSecretProvider(IJwtTokenProvider tokenProvider, IApiSecretRepository repository)
+	public ApiSecretProvider(IJwtTokenProvider tokenProvider, IApiSecretRepository<T> repository)
 	{
 		_tokenProvider = tokenProvider;
 		_repository = repository;
 	}
 
-	public async ValueTask<ApiSecret> CreateSecretAsync(CancellationToken cancellationToken)
+	public async ValueTask PersistSecretAsync(ApiSecret secret, CancellationToken cancellationToken = default)
 	{
-		var result = ApiSecret.Create(_tokenProvider);
-		await _repository.PersistAsync(result, cancellationToken);
+		if (!secret.HasGeneratedToken)
+		{
+			secret.GenerateJwtToken(_tokenProvider);
+		}
 
-		return result;
+		await _repository.PersistAsync((T)secret, cancellationToken);
 	}
 }

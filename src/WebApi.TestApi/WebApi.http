@@ -1,6 +1,5 @@
 @temp_HostAddress = http://localhost:5062
-@token = eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJXZWJBcGkiLCJpc3MiOiJBcGlBdXRoZW50aWNhdGlvbiIsImV4cCI6MTc3MzQzMzY4OCwic3ViIjoiMDE5Y2U4ZGQtZmMxMC03NWIzLWI5MjktYjc0MTRkYmU2YTI5IiwiaWF0IjoxNzczNDMzMzg4LCJuYmYiOjE3NzM0MzMzODh9.KRXaOQS0FEQG3HxpzBOPxNeJXpuyARvkZpT4u6iyJ41ArwrS7UCdph33iBEeHOW8lIpk_KTdb40dc-JcCHc0EA
-@id = 019ce8dd-0bb8-7901-ad6a-90d656cb919a
+@token = eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJXZWJBcGkiLCJpc3MiOiJBcGlBdXRoZW50aWNhdGlvbiIsImV4cCI6MTc3MzU2MTY4NCwic3ViIjoiMDE5Y2YwN2YtMGRiNS03ZDNhLTliZGUtODAyNTE3MWE2MGY0IiwiaWF0IjoxNzczNTYxMzg0LCJuYmYiOjE3NzM1NjEzODR9.CS1OdLoT_QykCTdHGKmc-F8HkL1CqhHqMwqqHNConCUWQAulVBTyT9w90x_LVFDcGtUPB7TmJ_Vf7pWK2BkbAw
 
 GET {{temp_HostAddress}}/login/
 Accept: application/json
@@ -13,6 +12,6 @@ Accept: application/json
 
 ###
 
-GET {{temp_HostAddress}}/revoke/{{id}}
+GET {{temp_HostAddress}}/revoke
 Authorization: Bearer {{token}}
 Accept: application/json

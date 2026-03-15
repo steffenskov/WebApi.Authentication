@@ -1,8 +1,10 @@
 using System.Security.Cryptography;
-using Api.Authentication.Configuration;
-using Api.Authentication.Repositories;
-using Api.Authentication.Services;
 using Api.WebApi;
+using Microsoft.AspNetCore.Mvc;
+using WebApi.Authentication;
+using WebApi.Authentication.Configuration;
+using WebApi.Authentication.Repositories;
+using WebApi.Authentication.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,14 +19,15 @@ var configuration = new AuthenticationConfiguration
 	Audience = "WebApi",
 	Expiration = TimeSpan.FromMinutes(5)
 };
-builder.Services.AddApiAuthentication<InMemoryRepository>(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretRepository<InMemoryRepository>();
+builder.Services.AddApiAuthentication(configuration, jwtBearerOptions =>
 {
 	if (builder.Environment.IsDevelopment())
 	{
 		jwtBearerOptions.RequireHttpsMetadata = false;
 	}
 });
-builder.Services.AddApiSecretProvider<InMemoryRepository>(configuration);
+builder.Services.AddApiSecretProvider(configuration);
 
 var app = builder.Build();
 
@@ -57,17 +60,18 @@ app.MapGet("/weatherforecast", () =>
 	.WithName("GetWeatherForecast")
 	.RequireAuthorization();
 
-app.MapGet("/login", async (IApiSecretProvider provider) =>
+app.MapGet("/login", async ([FromServices] IApiSecretProvider provider) =>
 	{
-		var secret = await provider.CreateSecretAsync();
-		return secret;
+		var secret = new ApiSecret();
+		await provider.PersistSecretAsync(secret);
+		return Results.Ok(secret);
 	})
 	.WithName("Login")
 	.AllowAnonymous();
 
-app.MapGet("/revoke/{id:guid}", async (IApiSecretRepository repository, Guid id) =>
+app.MapGet("/revoke", async (IApiSecretRepository<ApiSecret> repository, HttpContext context) =>
 	{
-		var secret = await repository.GetByIdAsync(id);
+		var secret = await repository.GetByClaimsAsync(context.User.Claims.ToList());
 		if (secret is null)
 		{
 			return Results.NotFound();

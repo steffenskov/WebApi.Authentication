@@ -1,6 +1,8 @@
-namespace Api.Authentication.Configuration;
+using System.Diagnostics.CodeAnalysis;
 
-public class AuthenticationConfiguration
+namespace WebApi.Authentication.Configuration;
+
+public record AuthenticationConfiguration
 {
 	/// <summary>
 	///     Secret key used to sign the token, do not share this with anyone, do not hardcode it, and do not store it in
@@ -32,4 +34,18 @@ public class AuthenticationConfiguration
 
 	internal SymmetricSecurityKey SigningKey => new(SecretKey);
 	internal SigningCredentials SigningCredentials => new(SigningKey, Algorithm);
+}
+
+public record AuthenticationConfiguration<TSecret> : AuthenticationConfiguration
+	where TSecret : ApiSecret
+{
+	[SetsRequiredMembers]
+	internal AuthenticationConfiguration(AuthenticationConfiguration original) : base(original)
+	{
+	}
+
+	/// <summary>
+	///     Factory method to set any custom claims for the token.
+	/// </summary>
+	public Func<TSecret, IEnumerable<Claim>>? CustomClaimsFactory { get; set; }
 }
