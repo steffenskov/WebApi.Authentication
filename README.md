@@ -87,7 +87,7 @@ var client = new MongoClient("mongodb://localhost:27017"); // You should use a c
 var db = client.GetDatabase("my_db");
 builder.Services.AddApiSecretRepositoryMongoDb(db, "api-secrets");
 
-builder.Services.AddApiAuthentication(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretAuthentication(configuration, jwtBearerOptions =>
 {
     if (builder.Environment.IsDevelopment()) // Disables HTTPs requirement in development
     {
@@ -152,7 +152,7 @@ Finally for your Dependency Injection you'll just need to add the generic types 
 ```csharp
 builder.Services.AddApiSecretRepository<SegregatedApiSecret, SegregatedApiSecretRepository>();
 
-builder.Services.AddApiAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
 {
     if (builder.Environment.IsDevelopment())
     {

@@ -26,7 +26,7 @@ internal class JwtTokenProvider : IJwtTokenProvider
 	{
 		var customClaims = secret.GetCustomClaims();
 
-		Claim[] claims = [new(JwtRegisteredClaimNames.Sub, secret.Id.ToString()), ..customClaims];
+		Claim[] claims = [new("sub", secret.Id.ToString()), ..customClaims];
 
 		var expires = DateTime.UtcNow.Add(_expiration);
 		var tokenDescriptor = new SecurityTokenDescriptor

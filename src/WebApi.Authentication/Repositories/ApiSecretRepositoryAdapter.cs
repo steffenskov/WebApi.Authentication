@@ -1,11 +1,11 @@
 namespace WebApi.Authentication.Repositories;
 
-internal class ApiSecretRepositoryShim<TApiSecret> : IApiSecretRepository
+internal class ApiSecretRepositoryAdapter<TApiSecret> : IApiSecretRepository
 	where TApiSecret : ApiSecret
 {
 	private readonly IApiSecretRepository<TApiSecret> _innerRepository;
 
-	public ApiSecretRepositoryShim(IApiSecretRepository<TApiSecret> innerRepository)
+	public ApiSecretRepositoryAdapter(IApiSecretRepository<TApiSecret> innerRepository)
 	{
 		_innerRepository = innerRepository;
 	}

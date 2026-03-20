@@ -18,14 +18,14 @@ var configuration = new AuthenticationConfiguration
 	Audience = "WebApi",
 	Expiration = TimeSpan.FromMinutes(5)
 };
-builder.Services.AddApiSecretRepository<SegregatedApiSecret, SegregatedInMemoryRepository>();
-builder.Services.AddApiAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
-{
-	if (builder.Environment.IsDevelopment())
+builder.Services.AddApiSecretAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
 	{
-		jwtBearerOptions.RequireHttpsMetadata = false;
-	}
-});
+		if (builder.Environment.IsDevelopment())
+		{
+			jwtBearerOptions.RequireHttpsMetadata = false;
+		}
+	})
+	.AddApiSecretRepository<SegregatedInMemoryRepository>();
 builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration);
 
 var app = builder.Build();

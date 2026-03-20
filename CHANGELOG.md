@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-20
+
 ### Fixed
 
-- Make DI more robust against misconfiguration when using custom `TApiSecret`
+- Made DI more robust against misconfiguration when using custom `TApiSecret` by chaining methods onto a custom service collection.
 
 ## [1.0.0] - 2026-03-15
 

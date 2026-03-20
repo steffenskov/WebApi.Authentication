@@ -1,6 +1,6 @@
 namespace WebApi.Authentication.Services;
 
-internal static class TokenValidatorService
+static internal class TokenValidatorService
 {
 	public static async Task OnTokenValidated(TokenValidatedContext context)
 	{
