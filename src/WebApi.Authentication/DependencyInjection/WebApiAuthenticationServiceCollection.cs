@@ -19,9 +19,10 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 		}
 
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>();
-		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+		AddAdapterRepository();
 		return this;
 	}
+
 
 	public IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>(TRepository repository)
 		where TRepository : class, IApiSecretRepository<TApiSecret>
@@ -32,7 +33,7 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 		}
 
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>>(repository);
-		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+		AddAdapterRepository();
 		return this;
 	}
 
@@ -45,7 +46,12 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 		}
 
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>(repositoryFactory);
-		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+		AddAdapterRepository();
 		return this;
+	}
+
+	private void AddAdapterRepository()
+	{
+		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 	}
 }
