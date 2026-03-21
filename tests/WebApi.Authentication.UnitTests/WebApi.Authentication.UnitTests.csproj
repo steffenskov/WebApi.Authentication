@@ -13,10 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Configuration\"/>
-    </ItemGroup>
-
-    <ItemGroup>
+        <ProjectReference Include="..\..\src\WebApi.Authentication.MongoDB\WebApi.Authentication.MongoDB.csproj"/>
         <ProjectReference Include="..\..\src\WebApi.Authentication\WebApi.Authentication.csproj"/>
     </ItemGroup>
 

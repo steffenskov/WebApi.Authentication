@@ -1,12 +1,12 @@
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using WebApi.Authentication;
+using WebApi.Authentication.DependencyInjection;
 using WebApi.Authentication.MongoDB.Repositories;
-
-namespace WebApi.Authentication.MongoDB;
 
 public static class Setup
 {
-	extension(IServiceCollection services)
+	extension<TApiSecret>(IWebApiAuthenticationServiceCollection<TApiSecret> services)
+		where TApiSecret : ApiSecret
 	{
 		/// <summary>
 		///     Adds a MongoDB based repository for ApiSecrets to the service collection using a custom ApiSecret type
@@ -15,21 +15,9 @@ public static class Setup
 		/// <param name="collectionName">Name of the collection to store secrets in</param>
 		/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
 		/// <returns>The service collection</returns>
-		public IServiceCollection AddApiSecretMongoRepository<TApiSecret>(IMongoDatabase db, string collectionName)
-			where TApiSecret : ApiSecret
+		public IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretMongoRepository(IMongoDatabase db, string collectionName)
 		{
-			return services.AddApiSecretRepository<TApiSecret, ApiSecretMongoRepository<TApiSecret>>(new ApiSecretMongoRepository<TApiSecret>(db, collectionName));
-		}
-
-		/// <summary>
-		///     Adds a MongoDB based repository for ApiSecrets to the service collection.
-		/// </summary>
-		/// <param name="db">Mongo database to stored secrets in</param>
-		/// <param name="collectionName">Name of the collection to store secrets in</param>
-		/// <returns>The service collection</returns>
-		public IServiceCollection AddApiSecretMongoRepository(IMongoDatabase db, string collectionName)
-		{
-			return services.AddApiSecretMongoRepository<ApiSecret>(db, collectionName);
+			return services.AddApiSecretRepository(new ApiSecretMongoRepository<TApiSecret>(db, collectionName));
 		}
 	}
 }

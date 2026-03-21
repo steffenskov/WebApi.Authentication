@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Security.Claims;
-using Microsoft.IdentityModel.JsonWebTokens;
 using WebApi.Authentication;
 using WebApi.Authentication.Repositories;
 
@@ -12,7 +11,7 @@ public class InMemoryRepository : IApiSecretRepository<ApiSecret>
 
 	public ValueTask<ApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
 	{
-		var subClaim = claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sub);
+		var subClaim = claims.FirstOrDefault(claim => claim.Type == "sub");
 		if (subClaim is null)
 		{
 			return ValueTask.FromResult<ApiSecret?>(null);
@@ -51,7 +50,7 @@ public class SegregatedInMemoryRepository : IApiSecretRepository<SegregatedApiSe
 			return ValueTask.FromResult<SegregatedApiSecret?>(null);
 		}
 
-		var subClaim = claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sub);
+		var subClaim = claims.FirstOrDefault(claim => claim.Type == "sub");
 		if (subClaim is null)
 		{
 			return ValueTask.FromResult<SegregatedApiSecret?>(null);

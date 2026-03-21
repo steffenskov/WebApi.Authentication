@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Microsoft.IdentityModel.JsonWebTokens;
 using MongoDB.Driver;
 using WebApi.Authentication.Repositories;
 
@@ -24,7 +23,7 @@ public class ApiSecretMongoRepository<TApiSecret> : IApiSecretRepository<TApiSec
 	/// <returns>ApiSecret if found, otherwise null</returns>
 	public virtual async ValueTask<TApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
 	{
-		var subClaim = claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sub);
+		var subClaim = claims.FirstOrDefault(claim => claim.Type == "sub");
 		if (subClaim is null)
 		{
 			return null;

@@ -8,14 +8,16 @@ This package add support for using MongoDB as storage repository for Api secrets
 
 # Usage
 
-Dependency inject an `IApiSecretRepository` using the `services.AddApiSecretMongoRepository(db, collectionName)` method.
+Dependency inject an `IApiSecretRepository` using the `.AddApiSecretMongoRepository(db, collectionName)` method.
 
 For example:
 
 ```csharp
 var client = new MongoClient(connectionString);
 var db = client.GetDatabase("myDb");
-services.AddApiSecretMongoRepository(db, "api-secrets");
+
+services.AddApiSecretAuthentication(configuration) // OR services.AddApiSecretProvider(configuration)
+        .AddApiSecretMongoRepository(db, "api-secrets");
 ```
 
 # Documentation

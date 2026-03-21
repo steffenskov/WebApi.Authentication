@@ -51,9 +51,9 @@ var configuration = new AuthenticationConfiguration
 // For this example we'll use a MongoDB database for storage
 var client = new MongoClient("mongodb://localhost:27017"); // You should use a connection string here.
 var db = client.GetDatabase("my_db");
-builder.Services.AddApiSecretMongoRepository(db, "api-secrets");
 
-builder.Services.AddApiSecretProvider(configuration); // Adds the IApiSecretProvider to the DI container
+builder.Services.AddApiSecretProvider(configuration) // Adds the IApiSecretProvider to the DI container
+                .AddApiSecretMongoRepository(db, "api-secrets");
 ```
 
 Now you'll have access to the `IApiSecretProvider` which you can use to store new Api secrets:
@@ -85,15 +85,15 @@ var configuration = new AuthenticationConfiguration
 // For this example we'll use a MongoDB database for storage
 var client = new MongoClient("mongodb://localhost:27017"); // You should use a connection string here.
 var db = client.GetDatabase("my_db");
-builder.Services.AddApiSecretRepositoryMongoDb(db, "api-secrets");
 
-builder.Services.AddApiAuthentication(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretAuthentication(configuration, jwtBearerOptions =>
 {
     if (builder.Environment.IsDevelopment()) // Disables HTTPs requirement in development
     {
         jwtBearerOptions.RequireHttpsMetadata = false;
     }
-});
+})
+.AddApiSecretMongoRepository(db, "api-secrets");
 
 var app = builder.Build();
 
@@ -150,9 +150,7 @@ And that's it for configuration, do not you'll need to instantiate the `Segregat
 Finally for your Dependency Injection you'll just need to add the generic types like so:
 
 ```csharp
-builder.Services.AddApiSecretRepository<SegregatedApiSecret, SegregatedApiSecretRepository>();
-
-builder.Services.AddApiAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
 {
     if (builder.Environment.IsDevelopment())
     {
@@ -160,13 +158,15 @@ builder.Services.AddApiAuthentication<SegregatedApiSecret>(configuration, jwtBea
     }
 });
 
-builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration);
+builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration)
+                .AddApiSecretRepository<SegregatedApiSecretRepository>();
 ```
 
 And just to complete the picture, here's an example of how you could inject `SegregatedApiSecretRepository` with a factory method:
 
 ```csharp
-builder.Services.AddApiSecretRepository<SegregatedApiSecret, SegregatedApiSecretRepository>(provider => 
+builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration)
+.AddApiSecretRepository<SegregatedApiSecretRepository>(provider => 
 {
     var client = provider.GetRequiredService<IMongoClient>(); // example based on MongoDB
     return new SegregatedApiSecretRepository(customerId =>

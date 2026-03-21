@@ -20,7 +20,7 @@ var configuration = new AuthenticationConfiguration
 	Expiration = TimeSpan.FromMinutes(5)
 };
 builder.Services.AddApiSecretRepository<InMemoryRepository>();
-builder.Services.AddApiAuthentication(configuration, jwtBearerOptions =>
+builder.Services.AddApiSecretAuthentication(configuration, jwtBearerOptions =>
 {
 	if (builder.Environment.IsDevelopment())
 	{

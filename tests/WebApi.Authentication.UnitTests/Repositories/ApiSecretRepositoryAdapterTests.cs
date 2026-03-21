@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 namespace WebApi.Authentication.UnitTests.Repositories;
 
-public class ApiSecretRepositoryShimTests
+public class ApiSecretRepositoryAdapterTests
 {
 	[Fact]
 	public async Task GetByClaimsAsync_NoState_ForwardsCallToInnerRepository()
@@ -14,7 +14,7 @@ public class ApiSecretRepositoryShimTests
 		innerRepository.When(x => x.GetByClaimsAsync(Arg.Any<ICollection<Claim>>(), Arg.Any<CancellationToken>()))
 			.Do(callInfo => { capturedClaims = callInfo.Arg<ICollection<Claim>>(); });
 
-		var repository = new ApiSecretRepositoryShim<ApiSecret>(innerRepository);
+		var repository = new ApiSecretRepositoryAdapter<ApiSecret>(innerRepository);
 
 		// Act
 		await repository.GetByClaimsAsync(claims, TestContext.Current.CancellationToken);
