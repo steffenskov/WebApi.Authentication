@@ -1,12 +1,15 @@
 namespace WebApi.Authentication.DependencyInjection;
 
+/// <summary>
+///     Custom ServiceCollection for adding repositories to the WebApi.Authentication configuration.
+/// </summary>
+/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
 public interface IWebApiAuthenticationServiceCollection<TApiSecret>
 	where TApiSecret : ApiSecret
 {
 	/// <summary>
 	///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
 	/// </summary>
-	/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
 	/// <typeparam name="TRepository">Type of repository</typeparam>
 	/// <returns>service collection</returns>
 	IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>()
@@ -16,7 +19,6 @@ public interface IWebApiAuthenticationServiceCollection<TApiSecret>
 	///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
 	/// </summary>
 	/// <param name="repository">Instance of the repository</param>
-	/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
 	/// <typeparam name="TRepository">Type of repository</typeparam>
 	/// <returns>service collection</returns>
 	IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>(TRepository repository)
@@ -26,7 +28,6 @@ public interface IWebApiAuthenticationServiceCollection<TApiSecret>
 	///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type.
 	/// </summary>
 	/// <param name="repositoryFactory">Factory method to create the repository</param>
-	/// <typeparam name="TApiSecret">Type of ApiSecret</typeparam>
 	/// <typeparam name="TRepository">Type of repository</typeparam>
 	/// <returns>service collection</returns>
 	IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>(Func<IServiceProvider, TRepository> repositoryFactory)

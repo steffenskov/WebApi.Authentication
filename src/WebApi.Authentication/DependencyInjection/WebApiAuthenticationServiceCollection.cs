@@ -13,6 +13,11 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 	public IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>()
 		where TRepository : class, IApiSecretRepository<TApiSecret>
 	{
+		if (_services.Any(sd => sd.ServiceType == typeof(IApiSecretRepository)))
+		{
+			throw new InvalidOperationException("An ApiSecret repository has already been registered.");
+		}
+
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>();
 		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 		return this;
@@ -21,6 +26,11 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 	public IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>(TRepository repository)
 		where TRepository : class, IApiSecretRepository<TApiSecret>
 	{
+		if (_services.Any(sd => sd.ServiceType == typeof(IApiSecretRepository)))
+		{
+			throw new InvalidOperationException("An ApiSecret repository has already been registered.");
+		}
+
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>>(repository);
 		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 		return this;
@@ -29,6 +39,11 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 	public IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>(Func<IServiceProvider, TRepository> repositoryFactory)
 		where TRepository : class, IApiSecretRepository<TApiSecret>
 	{
+		if (_services.Any(sd => sd.ServiceType == typeof(IApiSecretRepository)))
+		{
+			throw new InvalidOperationException("An ApiSecret repository has already been registered.");
+		}
+
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>(repositoryFactory);
 		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 		return this;

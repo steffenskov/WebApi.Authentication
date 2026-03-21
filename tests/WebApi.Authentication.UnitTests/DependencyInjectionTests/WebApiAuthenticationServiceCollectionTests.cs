@@ -48,7 +48,21 @@ public class WebApiAuthenticationServiceCollectionTests
 	}
 
 	[Fact]
-	public void AddApiSecretRepositoryGenerics_CustomType_AddedWithCustomType()
+	public void AddApiSecretRepository_AddedTwice_Throws()
+	{
+		// Arrange
+		var services = new ServiceCollection();
+		var webApiAuthenticationServiceCollection = services.AddApiSecretAuthentication(TestHelper.CreateConfiguration());
+		webApiAuthenticationServiceCollection.AddApiSecretRepository(new FakeRepository<ApiSecret>());
+
+		// Act && Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => webApiAuthenticationServiceCollection.AddApiSecretRepository(new FakeRepository<ApiSecret>()));
+
+		Assert.Equal("An ApiSecret repository has already been registered.", ex.Message);
+	}
+
+	[Fact]
+	public void AddApiSecretRepositoryGeneric_CustomType_AddedWithCustomType()
 	{
 		// Arrange
 		var services = new ServiceCollection();
@@ -87,6 +101,20 @@ public class WebApiAuthenticationServiceCollectionTests
 		Assert.NotNull(plainRepository);
 		Assert.IsType<FakeRepository<ApiSecret>>(genericRepository);
 		Assert.IsType<ApiSecretRepositoryAdapter<ApiSecret>>(plainRepository);
+	}
+
+	[Fact]
+	public void AddApiSecretRepositoryGeneric_AddedTwice_Throws()
+	{
+		// Arrange
+		var services = new ServiceCollection();
+		var webApiAuthenticationServiceCollection = services.AddApiSecretAuthentication(TestHelper.CreateConfiguration());
+		webApiAuthenticationServiceCollection.AddApiSecretRepository<FakeRepository<ApiSecret>>();
+
+		// Act && Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => webApiAuthenticationServiceCollection.AddApiSecretRepository<FakeRepository<ApiSecret>>());
+
+		Assert.Equal("An ApiSecret repository has already been registered.", ex.Message);
 	}
 
 	[Fact]
@@ -129,6 +157,20 @@ public class WebApiAuthenticationServiceCollectionTests
 		Assert.NotNull(plainRepository);
 		Assert.IsType<FakeRepository<ApiSecret>>(genericRepository);
 		Assert.IsType<ApiSecretRepositoryAdapter<ApiSecret>>(plainRepository);
+	}
+
+	[Fact]
+	public void AddApiSecretRepositoryFactory_AddedTwice_Throws()
+	{
+		// Arrange
+		var services = new ServiceCollection();
+		var webApiAuthenticationServiceCollection = services.AddApiSecretAuthentication(TestHelper.CreateConfiguration());
+		webApiAuthenticationServiceCollection.AddApiSecretRepository(_ => new FakeRepository<ApiSecret>());
+
+		// Act && Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => webApiAuthenticationServiceCollection.AddApiSecretRepository(_ => new FakeRepository<ApiSecret>()));
+
+		Assert.Equal("An ApiSecret repository has already been registered.", ex.Message);
 	}
 }
 
