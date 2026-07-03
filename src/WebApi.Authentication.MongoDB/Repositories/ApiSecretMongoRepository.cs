@@ -9,6 +9,11 @@ public class ApiSecretMongoRepository<TApiSecret> : IApiSecretRepository<TApiSec
 {
 	private readonly IMongoCollection<TApiSecret> _collection;
 
+	public ApiSecretMongoRepository(IMongoCollection<TApiSecret> collection)
+	{
+		_collection = collection;
+	}
+
 	public ApiSecretMongoRepository(IMongoDatabase db, string collectionName)
 	{
 		_collection = db.GetCollection<TApiSecret>(collectionName);

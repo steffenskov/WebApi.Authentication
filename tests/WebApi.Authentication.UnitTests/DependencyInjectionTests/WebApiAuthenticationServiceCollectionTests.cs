@@ -172,6 +172,67 @@ public class WebApiAuthenticationServiceCollectionTests
 
 		Assert.Equal("An ApiSecret repository has already been registered.", ex.Message);
 	}
+
+	[Fact]
+	public void AddSegregatedApiSecretRepositoryFactory_AddedTwice_Throws()
+	{
+		// Arrange
+		var services = new ServiceCollection();
+		var webApiAuthenticationServiceCollection = services.AddApiSecretAuthentication(TestHelper.CreateConfiguration());
+		webApiAuthenticationServiceCollection.AddSegregatedApiSecretRepository<SegregatedApiSecret<Guid>, Guid, FakeRepository<SegregatedApiSecret<Guid>>>((_, _) =>
+			new FakeRepository<SegregatedApiSecret<Guid>>());
+
+		// Act && Assert
+		var ex = Assert.Throws<InvalidOperationException>(() =>
+			webApiAuthenticationServiceCollection.AddSegregatedApiSecretRepository<SegregatedApiSecret<Guid>, Guid, FakeRepository<SegregatedApiSecret<Guid>>>((_, _) =>
+				new FakeRepository<SegregatedApiSecret<Guid>>()));
+
+		Assert.Equal("An ApiSecret repository has already been registered.", ex.Message);
+	}
+
+	[Fact]
+	public void AddSegregatedApiSecretRepositoryGeneric_CustomType_AddedWithCustomType()
+	{
+		// Arrange
+		var services = new ServiceCollection();
+		var webApiAuthenticationServiceCollection = services.AddApiSecretAuthentication<CustomApiSecret>(TestHelper.CreateConfiguration());
+
+		// Act
+		webApiAuthenticationServiceCollection.AddSegregatedApiSecretRepository<CustomApiSecret, Guid, FakeRepository<CustomApiSecret>>((_, _) => new FakeRepository<CustomApiSecret>());
+
+		var provider = services.BuildServiceProvider();
+
+		// Assert
+		var genericRepository = provider.GetRequiredService<IApiSecretRepository<CustomApiSecret>>();
+		var plainRepository = provider.GetRequiredService<IApiSecretRepository>();
+		Assert.NotNull(genericRepository);
+		Assert.NotNull(plainRepository);
+		Assert.IsType<SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, FakeRepository<CustomApiSecret>>>(genericRepository);
+		Assert.IsType<ApiSecretRepositoryAdapter<CustomApiSecret>>(plainRepository);
+	}
+
+	[Fact]
+	public void AddSegregatedApiSecretRepositoryGeneric_DefaultType_AddedWithDefaultType()
+	{
+		// Arrange
+		var services = new ServiceCollection();
+		var webApiAuthenticationServiceCollection = services.AddApiSecretAuthentication(TestHelper.CreateConfiguration());
+
+		// Act
+		webApiAuthenticationServiceCollection.AddSegregatedApiSecretRepository<SegregatedApiSecret<Guid>, Guid, FakeRepository<SegregatedApiSecret<Guid>>>((_, _) =>
+			new FakeRepository<SegregatedApiSecret<Guid>>());
+
+
+		var provider = services.BuildServiceProvider();
+
+		// Assert
+		var genericRepository = provider.GetRequiredService<IApiSecretRepository<SegregatedApiSecret<Guid>>>();
+		var plainRepository = provider.GetRequiredService<IApiSecretRepository>();
+		Assert.NotNull(genericRepository);
+		Assert.NotNull(plainRepository);
+		Assert.IsType<SegregatedApiSecretRepositoryAdapter<Guid, SegregatedApiSecret<Guid>, FakeRepository<SegregatedApiSecret<Guid>>>>(genericRepository);
+		Assert.IsType<ApiSecretRepositoryAdapter<SegregatedApiSecret<Guid>>>(plainRepository);
+	}
 }
 
 file class FakeRepository<T> : IApiSecretRepository<T>

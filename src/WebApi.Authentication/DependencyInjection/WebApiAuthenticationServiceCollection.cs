@@ -19,7 +19,7 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 		}
 
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>();
-		AddAdapterRepository();
+		AddAdapterRepository<TApiSecret>();
 		return this;
 	}
 
@@ -33,7 +33,7 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 		}
 
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>>(repository);
-		AddAdapterRepository();
+		AddAdapterRepository<TApiSecret>();
 		return this;
 	}
 
@@ -46,12 +46,28 @@ internal class WebApiAuthenticationServiceCollection<TApiSecret> : IWebApiAuthen
 		}
 
 		_services.AddSingleton<IApiSecretRepository<TApiSecret>, TRepository>(repositoryFactory);
-		AddAdapterRepository();
+		AddAdapterRepository<TApiSecret>();
 		return this;
 	}
 
-	private void AddAdapterRepository()
+	public IWebApiAuthenticationServiceCollection<TApiSecret> AddSegregatedApiSecretRepository<TSegregatedApiSecret, TKey, TRepository>(Func<IServiceProvider, TKey, TRepository> repositoryFactory)
+		where TSegregatedApiSecret : SegregatedApiSecret<TKey>, TApiSecret
+		where TKey : IParsable<TKey>
+		where TRepository : class, IApiSecretRepository<TSegregatedApiSecret>
 	{
-		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TApiSecret>(provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+		if (_services.Any(sd => sd.ServiceType == typeof(IApiSecretRepository)))
+		{
+			throw new InvalidOperationException("An ApiSecret repository has already been registered.");
+		}
+
+		_services.AddSingleton<IApiSecretRepository<TSegregatedApiSecret>>(provider => new SegregatedApiSecretRepositoryAdapter<TKey, TSegregatedApiSecret, TRepository>(provider, repositoryFactory));
+		AddAdapterRepository<TSegregatedApiSecret>();
+		return this;
+	}
+
+	private void AddAdapterRepository<TCustomApiSecret>()
+		where TCustomApiSecret : TApiSecret
+	{
+		_services.AddSingleton<IApiSecretRepository>(provider => new ApiSecretRepositoryAdapter<TCustomApiSecret>(provider.GetRequiredService<IApiSecretRepository<TCustomApiSecret>>()));
 	}
 }

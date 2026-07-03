@@ -32,4 +32,18 @@ public interface IWebApiAuthenticationServiceCollection<TApiSecret>
 	/// <returns>service collection</returns>
 	IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretRepository<TRepository>(Func<IServiceProvider, TRepository> repositoryFactory)
 		where TRepository : class, IApiSecretRepository<TApiSecret>;
+
+	/// <summary>
+	///     Adds a repository to the service collection for storing ApiSecrets using a custom ApiSecret type and a segregation
+	///     key for the underlying repositories.
+	/// </summary>
+	/// <param name="repositoryFactory">Factory method to create the repository</param>
+	/// <typeparam name="TSegregatedApiSecret">Type of ApiSecret, must inherit SegregatedApiSecret</typeparam>
+	/// <typeparam name="TKey">Type of key to use for repository segregation</typeparam>
+	/// <typeparam name="TRepository">Type of repository</typeparam>
+	/// <returns>service collection</returns>
+	IWebApiAuthenticationServiceCollection<TApiSecret> AddSegregatedApiSecretRepository<TSegregatedApiSecret, TKey, TRepository>(Func<IServiceProvider, TKey, TRepository> repositoryFactory)
+		where TSegregatedApiSecret : SegregatedApiSecret<TKey>, TApiSecret
+		where TKey : IParsable<TKey>
+		where TRepository : class, IApiSecretRepository<TSegregatedApiSecret>;
 }

@@ -1,0 +1,2 @@
+- figure out how to get rid of full generics specification
+- figure out how to get intellisense for the mongodb overload for segregation (can be seen in MongoDBTests in integration tests)
