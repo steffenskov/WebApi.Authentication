@@ -1,3 +1,5 @@
 namespace WebApi.Authentication.UnitTests;
 
-public class CustomApiSecret : SegregatedApiSecret<Guid>;
+public class CustomApiSecret : ApiSecret;
+
+public class CustomSegregatedApiSecret : SegregatedApiSecret<Guid>;

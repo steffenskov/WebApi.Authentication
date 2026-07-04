@@ -10,9 +10,9 @@ public class SegregatedApiSecretRepositoryAdapterTests
 		// Arrange
 		Claim[] claims = [new("sub", Guid.NewGuid().ToString())];
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
-			(_, _) => Substitute.For<IApiSecretRepository<CustomApiSecret>>());
+			(_, _) => Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>());
 
 		// Act && Assert
 		var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.GetByClaimsAsync(claims, TestContext.Current.CancellationToken));
@@ -26,9 +26,9 @@ public class SegregatedApiSecretRepositoryAdapterTests
 		const string invalidKey = "not-a-guid";
 		Claim[] claims = [new(Consts.SegregationClaim, invalidKey)];
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
-			(_, _) => Substitute.For<IApiSecretRepository<CustomApiSecret>>());
+			(_, _) => Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>());
 
 		// Act && Assert
 		var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.GetByClaimsAsync(claims, TestContext.Current.CancellationToken));
@@ -47,9 +47,9 @@ public class SegregatedApiSecretRepositoryAdapterTests
 			new(Consts.SegregationClaim, secondKey.ToString())
 		];
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
-			(_, _) => Substitute.For<IApiSecretRepository<CustomApiSecret>>());
+			(_, _) => Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>());
 
 		// Act && Assert
 		var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.GetByClaimsAsync(claims, TestContext.Current.CancellationToken));
@@ -61,14 +61,14 @@ public class SegregatedApiSecretRepositoryAdapterTests
 	{
 		// Arrange
 		var key = Guid.NewGuid();
-		var expectedSecret = new CustomApiSecret { Key = key };
+		var expectedSecret = new CustomSegregatedApiSecret { Key = key };
 		Claim[] claims = [new(Consts.SegregationClaim, key.ToString())];
 		var cancellationToken = TestContext.Current.CancellationToken;
 
-		var innerRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
+		var innerRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
 		innerRepository.GetByClaimsAsync(claims, cancellationToken).Returns(expectedSecret);
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
 			(_, requestedKey) =>
 			{
@@ -90,10 +90,10 @@ public class SegregatedApiSecretRepositoryAdapterTests
 		// Arrange
 		var key = Guid.NewGuid();
 		Claim[] claims = [new(Consts.SegregationClaim, key.ToString())];
-		var innerRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
+		var innerRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
 		var factoryCallCount = 0;
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
 			(_, _) =>
 			{
@@ -119,15 +119,15 @@ public class SegregatedApiSecretRepositoryAdapterTests
 		Claim[] firstClaims = [new(Consts.SegregationClaim, firstKey.ToString())];
 		Claim[] secondClaims = [new(Consts.SegregationClaim, secondKey.ToString())];
 
-		var firstRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
-		var secondRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
-		var repositories = new Dictionary<Guid, IApiSecretRepository<CustomApiSecret>>
+		var firstRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
+		var secondRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
+		var repositories = new Dictionary<Guid, IApiSecretRepository<CustomSegregatedApiSecret>>
 		{
 			[firstKey] = firstRepository,
 			[secondKey] = secondRepository
 		};
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
 			(_, requestedKey) => repositories[requestedKey]);
 
@@ -145,12 +145,12 @@ public class SegregatedApiSecretRepositoryAdapterTests
 	{
 		// Arrange
 		var key = Guid.NewGuid();
-		var secret = new CustomApiSecret { Key = key };
+		var secret = new CustomSegregatedApiSecret { Key = key };
 		var cancellationToken = TestContext.Current.CancellationToken;
 
-		var innerRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
+		var innerRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
 			(_, requestedKey) =>
 			{
@@ -170,12 +170,12 @@ public class SegregatedApiSecretRepositoryAdapterTests
 	{
 		// Arrange
 		var key = Guid.NewGuid();
-		var firstSecret = new CustomApiSecret { Key = key };
-		var secondSecret = new CustomApiSecret { Key = key };
-		var innerRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
+		var firstSecret = new CustomSegregatedApiSecret { Key = key };
+		var secondSecret = new CustomSegregatedApiSecret { Key = key };
+		var innerRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
 		var factoryCallCount = 0;
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
 			(_, _) =>
 			{
@@ -199,18 +199,18 @@ public class SegregatedApiSecretRepositoryAdapterTests
 		// Arrange
 		var firstKey = Guid.NewGuid();
 		var secondKey = Guid.NewGuid();
-		var firstSecret = new CustomApiSecret { Key = firstKey };
-		var secondSecret = new CustomApiSecret { Key = secondKey };
+		var firstSecret = new CustomSegregatedApiSecret { Key = firstKey };
+		var secondSecret = new CustomSegregatedApiSecret { Key = secondKey };
 
-		var firstRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
-		var secondRepository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
-		var repositories = new Dictionary<Guid, IApiSecretRepository<CustomApiSecret>>
+		var firstRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
+		var secondRepository = Substitute.For<IApiSecretRepository<CustomSegregatedApiSecret>>();
+		var repositories = new Dictionary<Guid, IApiSecretRepository<CustomSegregatedApiSecret>>
 		{
 			[firstKey] = firstRepository,
 			[secondKey] = secondRepository
 		};
 
-		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, IApiSecretRepository<CustomApiSecret>>(
+		var repository = new SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, IApiSecretRepository<CustomSegregatedApiSecret>>(
 			Substitute.For<IServiceProvider>(),
 			(_, requestedKey) => repositories[requestedKey]);
 

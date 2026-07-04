@@ -1,6 +1,9 @@
 namespace WebApi.Authentication;
 
-public class SegregatedApiSecret<TKey> : ApiSecret
+/// <summary>
+///     Segregated ApiSecret entity, can be inherited to extend with additional properties.
+/// </summary>
+public class SegregatedApiSecret<TKey> : BaseApiSecret
 	where TKey : notnull
 {
 	public required TKey Key { get; init; }

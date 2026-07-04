@@ -6,7 +6,7 @@ using WebApi.Authentication.Repositories;
 namespace Api.WebApi;
 
 public class InMemoryRepository<TApiSecret> : IApiSecretRepository<TApiSecret>
-	where TApiSecret : ApiSecret
+	where TApiSecret : class, IApiSecret
 
 {
 	private readonly ConcurrentDictionary<Guid, TApiSecret> _secrets = new();

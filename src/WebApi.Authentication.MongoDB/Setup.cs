@@ -20,26 +20,24 @@ public static class Setup
 		}
 	}
 
-	extension<TSegregatedApiSecret, TKey>(IWebApiAuthenticationServiceCollection<TSegregatedApiSecret> services)
-		where TSegregatedApiSecret : SegregatedApiSecret<TKey>
+	extension<TApiSecret, TKey>(IWebApiAuthenticationServiceCollection<TApiSecret, TKey> services)
+		where TApiSecret : SegregatedApiSecret<TKey>
 		where TKey : IParsable<TKey>
 	{
 		/// <summary>
 		///     Adds a MongoDB based repository for ApiSecrets to the service collection using a custom ApiSecret type
 		/// </summary>
-		/// <param name="db">Mongo database to stored secrets in</param>
-		/// <param name="collectionName">Name of the collection to store secrets in</param>
-		/// <typeparam name="TSegregatedApiSecret">Type of ApiSecret, must inherit SegregatedApiSecret</typeparam>
+		/// <typeparam name="TApiSecret">Type of ApiSecret. Must inherit SegregatedApiSecret</typeparam>
 		/// <typeparam name="TKey">Type of key to use for repository segregation</typeparam>
 		/// <param name="factoryMethod">Factory method to obtain a mongo collection for a specific key</param>
 		/// <returns>The service collection</returns>
-		public IWebApiAuthenticationServiceCollection<TSegregatedApiSecret> AddSegregatedApiSecretMongoRepository(
-			Func<IServiceProvider, TKey, IMongoCollection<TSegregatedApiSecret>> factoryMethod)
+		public IWebApiAuthenticationServiceCollection<TApiSecret, TKey> AddSegregatedApiSecretMongoRepository(
+			Func<IServiceProvider, TKey, IMongoCollection<TApiSecret>> factoryMethod)
 		{
-			return services.AddSegregatedApiSecretRepository<TSegregatedApiSecret, TKey, ApiSecretMongoRepository<TSegregatedApiSecret>>((provider, key) =>
+			return services.AddSegregatedApiSecretRepository<ApiSecretMongoRepository<TApiSecret>>((provider, key) =>
 			{
 				var collection = factoryMethod(provider, key);
-				return new ApiSecretMongoRepository<TSegregatedApiSecret>(collection);
+				return new ApiSecretMongoRepository<TApiSecret>(collection);
 			});
 		}
 	}

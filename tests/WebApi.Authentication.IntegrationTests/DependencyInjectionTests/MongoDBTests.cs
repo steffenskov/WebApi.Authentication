@@ -22,8 +22,8 @@ public partial class MongoDBTests
 			Expiration = TimeSpan.FromMinutes(5)
 		};
 		var serviceCollection = new ServiceCollection();
-		serviceCollection.AddApiSecretProvider<CustomApiSecret>(configuration)
-			.AddSegregatedApiSecretMongoRepository<CustomApiSecret, Guid>((_, key) => db.GetCollection<CustomApiSecret>($"api-secrets-{key.ToString()}"));
+		serviceCollection.AddSegregatedApiSecretProvider<CustomApiSecret, Guid>(configuration)
+			.AddSegregatedApiSecretMongoRepository((_, key) => db.GetCollection<CustomApiSecret>($"api-secrets-{key.ToString()}"));
 
 		var provider = serviceCollection.BuildServiceProvider();
 

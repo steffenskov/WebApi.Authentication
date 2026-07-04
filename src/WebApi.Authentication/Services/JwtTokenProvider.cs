@@ -4,7 +4,7 @@ namespace WebApi.Authentication.Services;
 
 internal interface IJwtTokenProvider
 {
-	(string Token, DateTime Expires) CreateToken(ApiSecret secret);
+	(string Token, DateTime Expires) CreateToken(BaseApiSecret secret);
 }
 
 internal class JwtTokenProvider : IJwtTokenProvider
@@ -22,7 +22,7 @@ internal class JwtTokenProvider : IJwtTokenProvider
 		_signingCredentials = configuration.SigningCredentials;
 	}
 
-	public (string Token, DateTime Expires) CreateToken(ApiSecret secret)
+	public (string Token, DateTime Expires) CreateToken(BaseApiSecret secret)
 	{
 		var customClaims = secret.GetCustomClaims();
 

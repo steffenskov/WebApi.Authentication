@@ -49,14 +49,14 @@ public class MongoDBTests
 		var services = new ServiceCollection();
 
 		// Act
-		services.AddApiSecretAuthentication<CustomApiSecret>(TestHelper.CreateConfiguration())
-			.AddSegregatedApiSecretMongoRepository<CustomApiSecret, Guid>((_, _) => Substitute.For<IMongoCollection<CustomApiSecret>>());
+		services.AddSegregatedApiSecretAuthentication<CustomSegregatedApiSecret, Guid>(TestHelper.CreateConfiguration())
+			.AddSegregatedApiSecretMongoRepository((_, _) => Substitute.For<IMongoCollection<CustomSegregatedApiSecret>>());
 
 		var provider = services.BuildServiceProvider();
 
 		// Assert
-		var repository = provider.GetRequiredService<IApiSecretRepository<CustomApiSecret>>();
+		var repository = provider.GetRequiredService<IApiSecretRepository<CustomSegregatedApiSecret>>();
 		Assert.NotNull(repository);
-		Assert.IsType<SegregatedApiSecretRepositoryAdapter<Guid, CustomApiSecret, ApiSecretMongoRepository<CustomApiSecret>>>(repository);
+		Assert.IsType<SegregatedApiSecretRepositoryAdapter<Guid, CustomSegregatedApiSecret, ApiSecretMongoRepository<CustomSegregatedApiSecret>>>(repository);
 	}
 }

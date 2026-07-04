@@ -116,10 +116,10 @@ public class CustomerApiSecret : SegregatedApiSecret<CustomerId>;
 
 And that's all for configuration.
 
-For your Dependency Injection you'll just need to add the generic types like so and use the `.AddSegregatedApiSecretRepository` method:
+For your Dependency Injection you'll just need to use the `Segregated` methods instead of the "normal" ones:
 
 ```csharp
-builder.Services.AddApiSecretAuthentication<CustomerApiSecret>(configuration, jwtBearerOptions =>
+builder.Services.AddSegregatedApiSecretAuthentication<CustomerApiSecret, CustomerId>(configuration, jwtBearerOptions =>
 {
     if (builder.Environment.IsDevelopment())
     {
@@ -127,8 +127,8 @@ builder.Services.AddApiSecretAuthentication<CustomerApiSecret>(configuration, jw
     }
 });
 
-builder.Services.AddApiSecretProvider<CustomerApiSecret>(configuration)
-                .AddSegregatedApiSecretMongoRepository<CustomerApiSecret, CustomerId>((provider, key) =>
+builder.Services.AddSegregatedApiSecretProvider<CustomerApiSecret, CustomerId>(configuration)
+                .AddSegregatedApiSecretMongoRepository((provider, key) =>
                 {
                     var client = provider.GetRequiredService<IMongoClient>();
                     var db = client.GetDatabase($"my_db_{key}"); // Segregate at db level

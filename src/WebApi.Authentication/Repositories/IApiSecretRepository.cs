@@ -1,7 +1,7 @@
 namespace WebApi.Authentication.Repositories;
 
 public interface IApiSecretRepository<TApiSecret>
-	where TApiSecret : ApiSecret
+	where TApiSecret : IApiSecret
 {
 	/// <summary>
 	///     Method to retrieve the ApiSecret from the repository based on claims. It's used by the Authentication middleware.
@@ -26,5 +26,5 @@ internal interface IApiSecretRepository
 	///     Method used internally by the middleware to get the ApiSecret from the repository.
 	///     You should not directly implement this interface, rather implement <see cref="IApiSecretRepository{TApiSecret}" />.
 	/// </summary>
-	ValueTask<ApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default);
+	ValueTask<IApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default);
 }

@@ -1,7 +1,7 @@
 namespace WebApi.Authentication.Repositories;
 
 internal class ApiSecretRepositoryAdapter<TApiSecret> : IApiSecretRepository
-	where TApiSecret : ApiSecret
+	where TApiSecret : class, IApiSecret
 {
 	private readonly IApiSecretRepository<TApiSecret> _innerRepository;
 
@@ -10,7 +10,7 @@ internal class ApiSecretRepositoryAdapter<TApiSecret> : IApiSecretRepository
 		_innerRepository = innerRepository;
 	}
 
-	public async ValueTask<ApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
+	public async ValueTask<IApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
 	{
 		var result = await _innerRepository.GetByClaimsAsync(claims, cancellationToken);
 		return result;

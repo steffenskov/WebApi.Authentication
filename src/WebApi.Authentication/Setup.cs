@@ -42,6 +42,38 @@ public static class Setup
 			Action<AuthorizationOptions>? configureAuthorization = null)
 			where TApiSecret : ApiSecret
 		{
+			services.AddApiSecretAuthenticationInternal(configuration, configureJwtBearerOptions, configureAuthorization);
+
+			return new WebApiAuthenticationServiceCollection<TApiSecret>(services);
+		}
+
+		/// <summary>
+		///     Adds the authentication and authorization services to the service collection with validation using a custom
+		///     ApiSecret type.
+		/// </summary>
+		/// <param name="configuration">Configuration of the authentication scheme</param>
+		/// <param name="configureJwtBearerOptions">
+		///     Optional: Configure the JwtBearerOptions, do note some configurations will be
+		///     overwritten if used!
+		/// </param>
+		/// <param name="configureAuthorization">Optional: Configure the AddAuthorization call.</param>
+		/// <typeparam name="TApiSecret">Type of ApiSecret. Must inherit SegregatedApiSecret</typeparam>
+		/// <typeparam name="TKey">Type of key to use for repository segregation</typeparam>
+		/// <returns>The service collection</returns>
+		public IWebApiAuthenticationServiceCollection<TApiSecret, TKey> AddSegregatedApiSecretAuthentication<TApiSecret, TKey>(AuthenticationConfiguration configuration,
+			Action<JwtBearerOptions>? configureJwtBearerOptions = null,
+			Action<AuthorizationOptions>? configureAuthorization = null)
+			where TApiSecret : SegregatedApiSecret<TKey>
+			where TKey : IParsable<TKey>
+		{
+			services.AddApiSecretAuthenticationInternal(configuration, configureJwtBearerOptions, configureAuthorization);
+
+			return new WebApiAuthenticationServiceCollection<TApiSecret, TKey>(services);
+		}
+
+		private void AddApiSecretAuthenticationInternal(AuthenticationConfiguration configuration, Action<JwtBearerOptions>? configureJwtBearerOptions,
+			Action<AuthorizationOptions>? configureAuthorization)
+		{
 			JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear(); // Disable mapping of sub claim to nameidentifier claim
 			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 				.AddJwtBearer(options =>
@@ -74,8 +106,6 @@ public static class Setup
 			{
 				services.AddAuthorization();
 			}
-
-			return new WebApiAuthenticationServiceCollection<TApiSecret>(services);
 		}
 
 		/// <summary>
@@ -103,10 +133,34 @@ public static class Setup
 		public IWebApiAuthenticationServiceCollection<TApiSecret> AddApiSecretProvider<TApiSecret>(AuthenticationConfiguration configuration)
 			where TApiSecret : ApiSecret
 		{
-			services.AddSingleton<IApiSecretProvider>(provider =>
-				new ApiSecretProvider<TApiSecret>(new JwtTokenProvider(configuration), provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
+			services.AddApiSecretProviderInternal<TApiSecret>(configuration);
 
 			return new WebApiAuthenticationServiceCollection<TApiSecret>(services);
+		}
+
+		/// <summary>
+		///     Adds the ApiSecretProvider to the service collection using a custom ApiSecret type with data segregation.
+		///     This can be used for issuing new api secrets.
+		/// </summary>
+		/// <param name="configuration">
+		///     configuration of your authentication, make sure you use the same configuration when
+		///     authenticating.
+		/// </param>
+		/// <returns>service collection</returns>
+		public IWebApiAuthenticationServiceCollection<TApiSecret, TKey> AddSegregatedApiSecretProvider<TApiSecret, TKey>(AuthenticationConfiguration configuration)
+			where TApiSecret : SegregatedApiSecret<TKey>
+			where TKey : IParsable<TKey>
+		{
+			services.AddApiSecretProviderInternal<TApiSecret>(configuration);
+
+			return new WebApiAuthenticationServiceCollection<TApiSecret, TKey>(services);
+		}
+
+		private void AddApiSecretProviderInternal<TApiSecret>(AuthenticationConfiguration configuration)
+			where TApiSecret : class, IApiSecret
+		{
+			services.AddSingleton<IApiSecretProvider>(provider =>
+				new ApiSecretProvider<TApiSecret>(new JwtTokenProvider(configuration), provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 		}
 	}
 }
