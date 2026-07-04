@@ -9,13 +9,12 @@ namespace WebApi.Authentication;
 /// </summary>
 public abstract class BaseApiSecret : IApiSecret
 {
-	internal BaseApiSecret()
+	private protected BaseApiSecret()
 	{
-		// Internal ctor prevents inheritance outside of the project
+		// private protected ctor prevents inheritance outside of the project
 	}
 
 	internal bool HasGeneratedToken => !string.IsNullOrWhiteSpace(JwtToken);
-	bool IApiSecret.HasGeneratedToken => HasGeneratedToken;
 
 	/// <summary>
 	///     Jwt token to use for authentication with this ApiSecret.
@@ -28,7 +27,7 @@ public abstract class BaseApiSecret : IApiSecret
 	public bool IsRevoked { get; private set; }
 
 	/// <summary>
-	///     Id of the the ApiSecret, automatically generated using Guid.CreateVersion7()
+	///     Id of the ApiSecret, automatically generated using Guid.CreateVersion7()
 	/// </summary>
 	public Guid Id { get; private set; } = Guid.CreateVersion7();
 
@@ -36,16 +35,6 @@ public abstract class BaseApiSecret : IApiSecret
 	///     Date of expiration for the token.
 	/// </summary>
 	public DateTime Expires { get; private set; }
-
-	/// <summary>
-	///     Generates the JwtToken using the provided tokenProvider.
-	///     Throws if a token already exists.
-	/// </summary>
-	/// <param name="tokenProvider">TokenProvider from Dependency Injection</param>
-	void IApiSecret.GenerateJwtToken(IJwtTokenProvider tokenProvider)
-	{
-		GenerateJwtToken(tokenProvider);
-	}
 
 	/// <summary>
 	///     Generates the JwtToken using the provided tokenProvider.

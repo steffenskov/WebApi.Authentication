@@ -1,5 +1,3 @@
-using WebApi.Authentication.Services;
-
 namespace WebApi.Authentication;
 
 public interface IApiSecret
@@ -15,7 +13,7 @@ public interface IApiSecret
 	bool IsRevoked { get; }
 
 	/// <summary>
-	///     Id of the the ApiSecret, automatically generated using Guid.CreateVersion7()
+	///     Id of the ApiSecret, automatically generated using Guid.CreateVersion7()
 	/// </summary>
 	Guid Id { get; }
 
@@ -23,7 +21,4 @@ public interface IApiSecret
 	///     Date of expiration for the token.
 	/// </summary>
 	DateTime Expires { get; }
-
-	internal bool HasGeneratedToken { get; }
-	internal void GenerateJwtToken(IJwtTokenProvider tokenProvider);
 }

@@ -157,8 +157,13 @@ public static class Setup
 		}
 
 		private void AddApiSecretProviderInternal<TApiSecret>(AuthenticationConfiguration configuration)
-			where TApiSecret : class, IApiSecret
+			where TApiSecret : BaseApiSecret
 		{
+			if (services.Any(sd => sd.ServiceType == typeof(IApiSecretProvider)))
+			{
+				throw new InvalidOperationException("An ApiSecretProvider has already been registered.");
+			}
+
 			services.AddSingleton<IApiSecretProvider>(provider =>
 				new ApiSecretProvider<TApiSecret>(new JwtTokenProvider(configuration), provider.GetRequiredService<IApiSecretRepository<TApiSecret>>()));
 		}

@@ -25,7 +25,7 @@ public class MongoDBTests
 	}
 
 	[Fact]
-	public void AddApiSecretMongoRepository_Segregated_AddsRepositoryAdapter()
+	public void AddApiSecretMongoRepository_CustomType_AddsRepositoryAdapter()
 	{
 		// Arrange
 		var services = new ServiceCollection();
@@ -37,9 +37,9 @@ public class MongoDBTests
 		var provider = services.BuildServiceProvider();
 
 		// Assert
-		var repository = provider.GetRequiredService<IApiSecretRepository<CustomApiSecret>>();
+		var repository = provider.GetRequiredService<IApiSecretRepository>();
 		Assert.NotNull(repository);
-		Assert.IsType<ApiSecretMongoRepository<CustomApiSecret>>(repository);
+		Assert.IsType<ApiSecretRepositoryAdapter<CustomApiSecret>>(repository);
 	}
 
 	[Fact]

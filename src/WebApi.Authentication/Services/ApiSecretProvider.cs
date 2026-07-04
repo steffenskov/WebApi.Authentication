@@ -6,7 +6,7 @@ public interface IApiSecretProvider
 }
 
 internal class ApiSecretProvider<TApiSecret> : IApiSecretProvider
-	where TApiSecret : class, IApiSecret
+	where TApiSecret : BaseApiSecret
 {
 	private readonly IApiSecretRepository<TApiSecret> _repository;
 	private readonly IJwtTokenProvider _tokenProvider;
@@ -19,11 +19,16 @@ internal class ApiSecretProvider<TApiSecret> : IApiSecretProvider
 
 	public async ValueTask PersistSecretAsync(IApiSecret secret, CancellationToken cancellationToken = default)
 	{
-		if (!secret.HasGeneratedToken)
+		if (secret is not TApiSecret actualSecret)
 		{
-			secret.GenerateJwtToken(_tokenProvider);
+			throw new ArgumentException($"Expected a secret of type {typeof(TApiSecret).Name} but got {secret.GetType().Name}", nameof(secret));
 		}
 
-		await _repository.PersistAsync((TApiSecret)secret, cancellationToken);
+		if (!actualSecret.HasGeneratedToken)
+		{
+			actualSecret.GenerateJwtToken(_tokenProvider);
+		}
+
+		await _repository.PersistAsync(actualSecret, cancellationToken);
 	}
 }
