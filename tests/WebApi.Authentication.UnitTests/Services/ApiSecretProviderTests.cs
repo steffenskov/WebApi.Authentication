@@ -71,9 +71,28 @@ public class ApiSecretProviderTests
 		var capturedCustomSecret = Assert.IsType<CustomApiSecret>(capturedSecret);
 		Assert.Equal(secret.CustomerId, capturedCustomSecret.CustomerId);
 	}
-}
 
-file sealed class CustomApiSecret : ApiSecret
-{
-	public Guid CustomerId { get; init; }
+	[Fact]
+	public async Task PersistSecretAsync_WrongSecretType_ThrowsArgumentException()
+	{
+		// Arrange
+		var secret = new ApiSecret();
+		var tokenProvider = TestHelper.CreateTokenProvider();
+		var repository = Substitute.For<IApiSecretRepository<CustomApiSecret>>();
+		var provider = new ApiSecretProvider<CustomApiSecret>(tokenProvider, repository);
+
+		// Act
+		var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+			await provider.PersistSecretAsync(secret, TestContext.Current.CancellationToken));
+
+		// Assert
+		Assert.Equal("secret", exception.ParamName);
+		Assert.Contains("Expected a secret of type CustomApiSecret but got ApiSecret", exception.Message);
+		await repository.DidNotReceive().PersistAsync(Arg.Any<CustomApiSecret>(), Arg.Any<CancellationToken>());
+	}
+
+	public sealed class CustomApiSecret : ApiSecret
+	{
+		public Guid CustomerId { get; init; }
+	}
 }

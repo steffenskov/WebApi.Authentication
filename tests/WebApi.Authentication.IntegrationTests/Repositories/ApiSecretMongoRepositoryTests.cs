@@ -70,7 +70,8 @@ public partial class ApiSecretMongoRepositoryTests
 		Assert.Equal(secret.Id, fetched.Id);
 		Assert.Equal(secret.JwtToken, fetched.JwtToken);
 		Assert.True(fetched.HasGeneratedToken);
-		Assert.True(secret.Expires - fetched.Expires < TimeSpan.FromSeconds(1)); // MongoDB lacks the precision of .Net, so some rounding occurs in the DB. This asserts that the value is roughly the same
+		Assert.True(secret.Expires - fetched.Expires <
+		            TimeSpan.FromSeconds(1)); // MongoDB lacks the precision of .Net, so some rounding occurs in the DB. This asserts that the value is roughly the same
 		Assert.Equal(secret.IsRevoked, fetched.IsRevoked);
 	}
 

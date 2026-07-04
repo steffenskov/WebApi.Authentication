@@ -103,54 +103,23 @@ app.UseAuthorization();
 
 And that's it for the authentication part, now you can mark any endpoints that requires Authentication with either `[Authorize]` or `.RequireAuthorization()` depending on whether you're using Controllers or Minimal APIs.
 
-# Customization
+# Data segregation
 
-The above Usage examples are all based on the default data model, where the `ApiSecret` class is used to store the secrets.
-It only contains the bare essentials for issuing and revoking tokens. However if you wanted to extend the model, i.e. for data segregation purposes, you can do so.
+The above Usage examples are all based on the default data model, where the `ApiSecret` class is used to store the secrets in a single repository.
+It only contains the bare essentials for issuing and revoking tokens. However if you want to do data segregation, that's built-in as well.
 
-Here's an example of how you could add a `CustomerId` property to the secrets and do segregated storage of secrets based on that CustomerId.
+I'd suggest defining a custom type for your secrets, rather than using generics everywhere, but it's up to you.
 
 ```csharp
-public class SegregatedApiSecret : ApiSecret
-{
-    public const string CustomerIdClaimType = "CustomerId";
-    public Guid CustomerId { get; init; }
-    
-    public override IEnumerable<Claim> GetCustomClaims()
-    {
-        yield return new Claim(CustomerIdClaimType, CustomerId.ToString());
-    }
-}
-
-public class SegregatedApiSecretRepository : IApiSecretRepository<SegregatedApiSecret>
-{
-    private readonly Func<CustomerId, IApiSecretRepository<SegregatedApiSecret>> _customerRepositoryFactory;
-    public SegregatedApiSecretRepository(Func<CustomerId, IApiSecretRepository<SegregatedApiSecret>> customerRepositoryFactory)
-    {
-        _customerRepositoryFactory = customerRepositoryFactory;
-    }
-    
-    public ValueTask<SegregatedApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
-    {
-        var customerClaim = claims.FirstOrDefault(claim => claim.Type == SegregatedApiSecret.CustomerIdClaimType);
-
-        if (!Guid.TryParse(customerClaim?.Value, out var customerId))
-        {
-            return ValueTask.FromResult<SegregatedApiSecret?>(null);
-        }
-        
-        var customerRepository = _customerRepositoryFactory(customerId);
-        return customerRepository.GetByClaimsAsync(claims, cancellationToken);
-    }
-}
+public class CustomerApiSecret : SegregatedApiSecret<CustomerId>;
 ```
 
-And that's it for configuration, do not you'll need to instantiate the `SegregatedApiSecretRepository` with some way of obtaining a per-Customer repository.
+And that's all for configuration.
 
-Finally for your Dependency Injection you'll just need to add the generic types like so:
+For your Dependency Injection you'll just need to use the `Segregated` methods instead of the "normal" ones:
 
 ```csharp
-builder.Services.AddApiSecretAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
+builder.Services.AddSegregatedApiSecretAuthentication<CustomerApiSecret, CustomerId>(configuration, jwtBearerOptions =>
 {
     if (builder.Environment.IsDevelopment())
     {
@@ -158,22 +127,42 @@ builder.Services.AddApiSecretAuthentication<SegregatedApiSecret>(configuration, 
     }
 });
 
-builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration)
-                .AddApiSecretRepository<SegregatedApiSecretRepository>();
+builder.Services.AddSegregatedApiSecretProvider<CustomerApiSecret, CustomerId>(configuration)
+                .AddSegregatedApiSecretMongoRepository((provider, key) =>
+                {
+                    var client = provider.GetRequiredService<IMongoClient>();
+                    var db = client.GetDatabase($"my_db_{key}"); // Segregate at db level
+                    var collection = db.GetCollection<CustomerApiSecret>("api-secrets"); // You could segregate here instead/as well
+                    return collection;
+                });
 ```
 
-And just to complete the picture, here's an example of how you could inject `SegregatedApiSecretRepository` with a factory method:
+# Customization
+
+The above examples are very bare-bones in terms of data, so what if you'd like to include e.g. roles in your secrets?
+
+Luckily this is really simple, just define a custom type for your secrets, and extend the model as you see fit. e.g.
 
 ```csharp
-builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration)
-.AddApiSecretRepository<SegregatedApiSecretRepository>(provider => 
+public class RoleBasedApiSecret : ApiSecret
 {
-    var client = provider.GetRequiredService<IMongoClient>(); // example based on MongoDB
-    return new SegregatedApiSecretRepository(customerId =>
+    public required string[] Roles {get; init;}
+}
+```
+
+And specify `RoleBasedApiSecret` when doing your DI, and you're all set :-)
+
+```csharp
+builder.Services.AddApiSecretAuthentication<RoleBasedApiSecret>(configuration, jwtBearerOptions =>
+{
+    if (builder.Environment.IsDevelopment())
     {
-        return new ApiSecretMongoRepository(client.GetDatabase($"my_db_{customerId}"), "api-secrets"));    
-    });
+        jwtBearerOptions.RequireHttpsMetadata = false;
+    }
 });
+
+builder.Services.AddApiSecretProvider<RoleBasedApiSecret>(configuration)
+    .AddApiSecretMongoRepository(db, "api-secrets");
 ```
 
 # Documentation

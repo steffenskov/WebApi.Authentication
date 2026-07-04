@@ -2,7 +2,7 @@
 
 
     <PropertyGroup>
-      <RootNamespace>Api.WebApi</RootNamespace>
+        <RootNamespace>Api.WebApi</RootNamespace>
     </PropertyGroup>
 
 
@@ -13,7 +13,8 @@
 
 
     <ItemGroup>
-        <ProjectReference Include="..\WebApi.Authentication\WebApi.Authentication.csproj" />
+        <ProjectReference Include="..\WebApi.Authentication.MongoDB\WebApi.Authentication.MongoDB.csproj"/>
+        <ProjectReference Include="..\WebApi.Authentication\WebApi.Authentication.csproj"/>
     </ItemGroup>
 
 </Project>

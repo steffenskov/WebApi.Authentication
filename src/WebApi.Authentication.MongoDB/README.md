@@ -20,6 +20,26 @@ services.AddApiSecretAuthentication(configuration) // OR services.AddApiSecretPr
         .AddApiSecretMongoRepository(db, "api-secrets");
 ```
 
+or, if you want data segregation:
+
+```csharp
+public class CustomerApiSecret : SegregatedApiSecret<CustomerId>;
+```
+
+```csharp
+var client = new MongoClient(connectionString);
+var db = client.GetDatabase("myDb");
+
+services.AddSegregatedApiSecretProvider<CustomerApiSecret, CustomerId>(configuration)
+        .AddSegregatedApiSecretMongoRepository((provider, key) =>
+        {
+            var client = provider.GetRequiredService<IMongoClient>();
+            var db = client.GetDatabase($"my_db_{key}"); // Segregate at db level
+            var collection = db.GetCollection<CustomerApiSecret>("api-secrets"); // You could segregate here instead/as well
+            return collection;
+        });
+```
+
 # Documentation
 
 Auto generated documentation via [DocFx](https://github.com/dotnet/docfx) is available

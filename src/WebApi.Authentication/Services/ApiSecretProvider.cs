@@ -2,11 +2,11 @@ namespace WebApi.Authentication.Services;
 
 public interface IApiSecretProvider
 {
-	ValueTask PersistSecretAsync(ApiSecret secret, CancellationToken cancellationToken = default);
+	ValueTask PersistSecretAsync(IApiSecret secret, CancellationToken cancellationToken = default);
 }
 
 internal class ApiSecretProvider<TApiSecret> : IApiSecretProvider
-	where TApiSecret : ApiSecret
+	where TApiSecret : BaseApiSecret
 {
 	private readonly IApiSecretRepository<TApiSecret> _repository;
 	private readonly IJwtTokenProvider _tokenProvider;
@@ -17,13 +17,18 @@ internal class ApiSecretProvider<TApiSecret> : IApiSecretProvider
 		_repository = repository;
 	}
 
-	public async ValueTask PersistSecretAsync(ApiSecret secret, CancellationToken cancellationToken = default)
+	public async ValueTask PersistSecretAsync(IApiSecret secret, CancellationToken cancellationToken = default)
 	{
-		if (!secret.HasGeneratedToken)
+		if (secret is not TApiSecret actualSecret)
 		{
-			secret.GenerateJwtToken(_tokenProvider);
+			throw new ArgumentException($"Expected a secret of type {typeof(TApiSecret).Name} but got {secret.GetType().Name}", nameof(secret));
 		}
 
-		await _repository.PersistAsync((TApiSecret)secret, cancellationToken);
+		if (!actualSecret.HasGeneratedToken)
+		{
+			actualSecret.GenerateJwtToken(_tokenProvider);
+		}
+
+		await _repository.PersistAsync(actualSecret, cancellationToken);
 	}
 }

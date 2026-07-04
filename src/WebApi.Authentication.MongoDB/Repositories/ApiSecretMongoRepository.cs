@@ -5,9 +5,14 @@ using WebApi.Authentication.Repositories;
 namespace WebApi.Authentication.MongoDB.Repositories;
 
 public class ApiSecretMongoRepository<TApiSecret> : IApiSecretRepository<TApiSecret>
-	where TApiSecret : ApiSecret
+	where TApiSecret : class, IApiSecret
 {
 	private readonly IMongoCollection<TApiSecret> _collection;
+
+	public ApiSecretMongoRepository(IMongoCollection<TApiSecret> collection)
+	{
+		_collection = collection;
+	}
 
 	public ApiSecretMongoRepository(IMongoDatabase db, string collectionName)
 	{

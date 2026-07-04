@@ -111,14 +111,14 @@ file sealed class FakeAuthenticationHandler : IAuthenticationHandler
 
 file sealed class FakeApiSecretRepository : IApiSecretRepository
 {
-	private readonly ApiSecret? _returnValue;
+	private readonly IApiSecret? _returnValue;
 
-	public FakeApiSecretRepository(ApiSecret? returnValue)
+	public FakeApiSecretRepository(IApiSecret? returnValue)
 	{
 		_returnValue = returnValue;
 	}
 
-	public ValueTask<ApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
+	public ValueTask<IApiSecret?> GetByClaimsAsync(ICollection<Claim> claims, CancellationToken cancellationToken = default)
 	{
 		return ValueTask.FromResult(_returnValue);
 	}

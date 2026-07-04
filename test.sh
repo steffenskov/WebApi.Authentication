@@ -1,12 +1,17 @@
 #!/bin/sh
 
-rm TestResults -rf 2> /dev/null
-rm coverage-report -rf 2> /dev/null
+set -e
+
+rm -rf TestResults 2> /dev/null
 
 dotnet test --results-directory ./TestResults --collect:"XPlat Code Coverage"
 
+reportgenerator \
+  -reports:"TestResults/**/coverage.cobertura.xml" \
+  -targetdir:coverage-report \
+  -reporttypes:Html \
+  -filefilters:"-**/obj/**"
 
-reportgenerator -reports:"TestResults/*/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Html
-rm TestResults -rf 2> /dev/null
 
-xdg-open coverage-report/index.htm
+[ -f coverage-report/index.html ]
+xdg-open coverage-report/index.html

@@ -18,15 +18,16 @@ var configuration = new AuthenticationConfiguration
 	Audience = "WebApi",
 	Expiration = TimeSpan.FromMinutes(5)
 };
-builder.Services.AddApiSecretAuthentication<SegregatedApiSecret>(configuration, jwtBearerOptions =>
+builder.Services.AddSegregatedApiSecretAuthentication<CustomApiSecret, Guid>(configuration, jwtBearerOptions =>
 	{
 		if (builder.Environment.IsDevelopment())
 		{
 			jwtBearerOptions.RequireHttpsMetadata = false;
 		}
 	})
-	.AddApiSecretRepository<SegregatedInMemoryRepository>();
-builder.Services.AddApiSecretProvider<SegregatedApiSecret>(configuration);
+	.AddSegregatedApiSecretRepository<InMemoryRepository<CustomApiSecret>>((_, _) => new InMemoryRepository<CustomApiSecret>());
+builder.Services.AddSegregatedApiSecretProvider<CustomApiSecret, Guid>(configuration);
+
 
 var app = builder.Build();
 
@@ -63,9 +64,9 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapGet("/login", async ([FromServices] IApiSecretProvider provider) =>
 	{
-		var secret = new SegregatedApiSecret
+		var secret = new CustomApiSecret
 		{
-			CustomerId = Guid.NewGuid()
+			Key = Guid.NewGuid()
 		};
 		await provider.PersistSecretAsync(secret);
 		return Results.Ok(secret);
@@ -73,7 +74,7 @@ app.MapGet("/login", async ([FromServices] IApiSecretProvider provider) =>
 	.WithName("Login")
 	.AllowAnonymous();
 
-app.MapGet("/revoke", async (IApiSecretRepository<SegregatedApiSecret> repository, HttpContext context) =>
+app.MapGet("/revoke", async (IApiSecretRepository<CustomApiSecret> repository, HttpContext context) =>
 	{
 		var secret = await repository.GetByClaimsAsync(context.User.Claims.ToList());
 		if (secret is null)

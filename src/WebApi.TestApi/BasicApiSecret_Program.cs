@@ -19,14 +19,14 @@ var configuration = new AuthenticationConfiguration
 	Audience = "WebApi",
 	Expiration = TimeSpan.FromMinutes(5)
 };
-builder.Services.AddApiSecretRepository<InMemoryRepository>();
+
 builder.Services.AddApiSecretAuthentication(configuration, jwtBearerOptions =>
 {
 	if (builder.Environment.IsDevelopment())
 	{
 		jwtBearerOptions.RequireHttpsMetadata = false;
 	}
-});
+}).AddApiSecretRepository<InMemoryRepository<ApiSecret>>();
 builder.Services.AddApiSecretProvider(configuration);
 
 var app = builder.Build();
