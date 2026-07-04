@@ -9,6 +9,11 @@ namespace WebApi.Authentication;
 /// </summary>
 public abstract class BaseApiSecret : IApiSecret
 {
+	internal BaseApiSecret()
+	{
+		// Internal ctor prevents inheritance outside of the project
+	}
+
 	internal bool HasGeneratedToken => !string.IsNullOrWhiteSpace(JwtToken);
 	bool IApiSecret.HasGeneratedToken => HasGeneratedToken;
 
