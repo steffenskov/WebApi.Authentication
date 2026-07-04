@@ -30,8 +30,8 @@ public class CustomerApiSecret : SegregatedApiSecret<CustomerId>;
 var client = new MongoClient(connectionString);
 var db = client.GetDatabase("myDb");
 
-services.AddApiSecretProvider<CustomerApiSecret>(configuration)
-        .AddSegregatedApiSecretMongoRepository<CustomerApiSecret, CustomerId>((provider, key) =>
+services.AddSegregatedApiSecretProvider<CustomerApiSecret, CustomerId>(configuration)
+        .AddSegregatedApiSecretMongoRepository((provider, key) =>
         {
             var client = provider.GetRequiredService<IMongoClient>();
             var db = client.GetDatabase($"my_db_{key}"); // Segregate at db level
